@@ -867,6 +867,34 @@
 </div>
 
 <script>
+/* Storage wrapper: uses Claude's window.storage when available (in-chat preview),
+   falls back to localStorage when the file is opened directly in a browser
+   (so data still persists between reloads on that device). */
+const appStorage = {
+  async get(key, shared){
+    if(typeof window.storage !== 'undefined' && window.storage){
+      return window.storage.get(key, shared);
+    }
+    const val = localStorage.getItem(key);
+    if(val === null) throw new Error('not found');
+    return { key, value: val, shared: !!shared };
+  },
+  async set(key, value, shared){
+    if(typeof window.storage !== 'undefined' && window.storage){
+      return window.storage.set(key, value, shared);
+    }
+    localStorage.setItem(key, value);
+    return { key, value, shared: !!shared };
+  },
+  async delete(key, shared){
+    if(typeof window.storage !== 'undefined' && window.storage){
+      return window.storage.delete(key, shared);
+    }
+    localStorage.removeItem(key);
+    return { key, deleted:true, shared: !!shared };
+  }
+};
+
 const SPECIFIC_SWAP_MATCHES = {
   "Куриные котлеты в аэрогриле с цветной капустой": "https://samokat.ru/product/kurinye-parovye-kotlety-creative-kitchen-160-g",
   "Омлет со шпинатом и помидорами, свежий салат из огурца и редиса": "https://samokat.ru/product/omlet-grecheskiy-creative-kitchen-s-nachinkoy-iz-shpinata-gribov-i-syra-210-g",
@@ -1204,10 +1232,10 @@ function formatDate(d){
 }
 
 async function loadAll(){
-  try{ const r = await window.storage.get('tracker:weight', false); trackWeight = r && r.value ? JSON.parse(r.value) : []; } catch(e){ trackWeight = []; }
-  try{ const r = await window.storage.get('tracker:measure', false); trackMeasure = r && r.value ? JSON.parse(r.value) : []; } catch(e){ trackMeasure = []; }
-  try{ const r = await window.storage.get('tracker:wellbeing', false); trackWellbeing = r && r.value ? JSON.parse(r.value) : []; } catch(e){ trackWellbeing = []; }
-  try{ const r = await window.storage.get('tracker:photos', false); trackPhotos = r && r.value ? JSON.parse(r.value) : []; } catch(e){ trackPhotos = []; }
+  try{ const r = await appStorage.get('tracker:weight', false); trackWeight = r && r.value ? JSON.parse(r.value) : []; } catch(e){ trackWeight = []; }
+  try{ const r = await appStorage.get('tracker:measure', false); trackMeasure = r && r.value ? JSON.parse(r.value) : []; } catch(e){ trackMeasure = []; }
+  try{ const r = await appStorage.get('tracker:wellbeing', false); trackWellbeing = r && r.value ? JSON.parse(r.value) : []; } catch(e){ trackWellbeing = []; }
+  try{ const r = await appStorage.get('tracker:photos', false); trackPhotos = r && r.value ? JSON.parse(r.value) : []; } catch(e){ trackPhotos = []; }
 
   trackWeight.sort((a,b) => a.date.localeCompare(b.date));
   trackMeasure.sort((a,b) => a.date.localeCompare(b.date));
@@ -1242,7 +1270,7 @@ async function saveWeight(){
   trackWeight.push({ date, weight });
   trackWeight.sort((a,b) => a.date.localeCompare(b.date));
   try{
-    await window.storage.set('tracker:weight', JSON.stringify(trackWeight), false);
+    await appStorage.set('tracker:weight', JSON.stringify(trackWeight), false);
     document.getElementById('w-status').textContent = 'Сохранено ✓';
   } catch(e){
     document.getElementById('w-status').textContent = 'Не удалось сохранить.';
@@ -1253,7 +1281,7 @@ async function saveWeight(){
 
 async function deleteWeight(date){
   trackWeight = trackWeight.filter(e => e.date !== date);
-  try{ await window.storage.set('tracker:weight', JSON.stringify(trackWeight), false); } catch(e){}
+  try{ await appStorage.set('tracker:weight', JSON.stringify(trackWeight), false); } catch(e){}
   renderWeight();
 }
 
@@ -1340,7 +1368,7 @@ async function saveMeasure(){
   trackMeasure.push(entry);
   trackMeasure.sort((a,b) => a.date.localeCompare(b.date));
   try{
-    await window.storage.set('tracker:measure', JSON.stringify(trackMeasure), false);
+    await appStorage.set('tracker:measure', JSON.stringify(trackMeasure), false);
     document.getElementById('m-status').textContent = 'Сохранено ✓';
   } catch(e){
     document.getElementById('m-status').textContent = 'Не удалось сохранить.';
@@ -1351,7 +1379,7 @@ async function saveMeasure(){
 
 async function deleteMeasure(date){
   trackMeasure = trackMeasure.filter(e => e.date !== date);
-  try{ await window.storage.set('tracker:measure', JSON.stringify(trackMeasure), false); } catch(e){}
+  try{ await appStorage.set('tracker:measure', JSON.stringify(trackMeasure), false); } catch(e){}
   renderMeasure();
 }
 
@@ -1399,7 +1427,7 @@ async function saveWellbeing(){
   trackWellbeing.push(entry);
   trackWellbeing.sort((a,b) => a.date.localeCompare(b.date));
   try{
-    await window.storage.set('tracker:wellbeing', JSON.stringify(trackWellbeing), false);
+    await appStorage.set('tracker:wellbeing', JSON.stringify(trackWellbeing), false);
     document.getElementById('wb-status').textContent = 'Сохранено ✓';
   } catch(e){
     document.getElementById('wb-status').textContent = 'Не удалось сохранить.';
@@ -1410,7 +1438,7 @@ async function saveWellbeing(){
 
 async function deleteWellbeing(date){
   trackWellbeing = trackWellbeing.filter(e => e.date !== date);
-  try{ await window.storage.set('tracker:wellbeing', JSON.stringify(trackWellbeing), false); } catch(e){}
+  try{ await appStorage.set('tracker:wellbeing', JSON.stringify(trackWellbeing), false); } catch(e){}
   renderWellbeing();
 }
 
@@ -1483,7 +1511,7 @@ async function savePhoto(){
     try{
       document.getElementById('p-status').textContent = 'Сжимаю и сохраняю фото…';
       const dataURL = await compressImage(file);
-      await window.storage.set('photo:' + date, dataURL, false);
+      await appStorage.set('photo:' + date, dataURL, false);
       hasPhoto = true;
     } catch(err){
       document.getElementById('p-status').textContent = 'Не удалось сохранить фото.';
@@ -1496,7 +1524,7 @@ async function savePhoto(){
   trackPhotos.push(entry);
   trackPhotos.sort((a,b) => a.date.localeCompare(b.date));
   try{
-    await window.storage.set('tracker:photos', JSON.stringify(trackPhotos), false);
+    await appStorage.set('tracker:photos', JSON.stringify(trackPhotos), false);
     document.getElementById('p-status').textContent = 'Сохранено ✓';
   } catch(e){
     document.getElementById('p-status').textContent = 'Не удалось сохранить.';
@@ -1510,15 +1538,15 @@ async function savePhoto(){
 async function deletePhoto(date){
   trackPhotos = trackPhotos.filter(e => e.date !== date);
   try{
-    await window.storage.set('tracker:photos', JSON.stringify(trackPhotos), false);
-    await window.storage.delete('photo:' + date, false);
+    await appStorage.set('tracker:photos', JSON.stringify(trackPhotos), false);
+    await appStorage.delete('photo:' + date, false);
   } catch(e){}
   renderPhotos();
 }
 
 async function viewPhoto(date){
   try{
-    const res = await window.storage.get('photo:' + date, false);
+    const res = await appStorage.get('photo:' + date, false);
     if(res && res.value){
       const win = window.open();
       win.document.write(`<img src="${res.value}" style="max-width:100%;">`);
@@ -1537,7 +1565,7 @@ async function renderPhotos(){
     let thumbHtml = '—';
     if(e.hasPhoto){
       try{
-        const res = await window.storage.get('photo:' + e.date, false);
+        const res = await appStorage.get('photo:' + e.date, false);
         if(res && res.value){
           thumbHtml = `<img class="thumb" src="${res.value}" onclick="viewPhoto('${e.date}')">`;
         }
@@ -1622,10 +1650,10 @@ function getWeekdayIndex(dateStr){
 }
 
 async function loadDiary(){
-  try{ const r = await window.storage.get('tracker:budget', false); foodBudget = r && r.value ? parseFloat(r.value) : 1575; } catch(e){ foodBudget = 1575; }
-  try{ const r = await window.storage.get('tracker:workoutBonus', false); workoutBonus = r && r.value ? parseFloat(r.value) : 150; } catch(e){ workoutBonus = 150; }
-  try{ const r = await window.storage.get('tracker:foodlog', false); foodLog = r && r.value ? JSON.parse(r.value) : {}; } catch(e){ foodLog = {}; }
-  try{ const r = await window.storage.get('tracker:workoutdays', false); workoutDays = r && r.value ? JSON.parse(r.value) : {}; } catch(e){ workoutDays = {}; }
+  try{ const r = await appStorage.get('tracker:budget', false); foodBudget = r && r.value ? parseFloat(r.value) : 1575; } catch(e){ foodBudget = 1575; }
+  try{ const r = await appStorage.get('tracker:workoutBonus', false); workoutBonus = r && r.value ? parseFloat(r.value) : 150; } catch(e){ workoutBonus = 150; }
+  try{ const r = await appStorage.get('tracker:foodlog', false); foodLog = r && r.value ? JSON.parse(r.value) : {}; } catch(e){ foodLog = {}; }
+  try{ const r = await appStorage.get('tracker:workoutdays', false); workoutDays = r && r.value ? JSON.parse(r.value) : {}; } catch(e){ workoutDays = {}; }
   document.getElementById('d-budget-input').value = foodBudget;
   document.getElementById('d-workout-bonus-input').value = workoutBonus;
   document.getElementById('d-date').value = todayStr();
@@ -1651,8 +1679,8 @@ async function saveBudget(){
   foodBudget = val;
   workoutBonus = isNaN(bonusVal) ? 150 : bonusVal;
   try{
-    await window.storage.set('tracker:budget', String(foodBudget), false);
-    await window.storage.set('tracker:workoutBonus', String(workoutBonus), false);
+    await appStorage.set('tracker:budget', String(foodBudget), false);
+    await appStorage.set('tracker:workoutBonus', String(workoutBonus), false);
     document.getElementById('d-status').textContent = 'Норма сохранена ✓';
   } catch(e){
     document.getElementById('d-status').textContent = 'Не удалось сохранить.';
@@ -1665,7 +1693,7 @@ async function onWorkoutToggle(){
   const checked = document.getElementById('d-workout').checked;
   workoutDays[date] = checked;
   try{
-    await window.storage.set('tracker:workoutdays', JSON.stringify(workoutDays), false);
+    await appStorage.set('tracker:workoutdays', JSON.stringify(workoutDays), false);
   } catch(e){}
   renderDiary();
 }
@@ -1687,7 +1715,7 @@ function renderQuickAdd(){
 
 async function persistFoodLog(){
   try{
-    await window.storage.set('tracker:foodlog', JSON.stringify(foodLog), false);
+    await appStorage.set('tracker:foodlog', JSON.stringify(foodLog), false);
   } catch(e){
     document.getElementById('d-status').textContent = 'Не удалось сохранить.';
   }
