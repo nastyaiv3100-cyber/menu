@@ -583,6 +583,7 @@
     .meals{ grid-template-columns: 1fr; }
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -627,8 +628,11 @@
 
   <div class="tracker-panel" id="tracker-panel">
     <div class="info-card">
-      <h3>Что важно отслеживать на пути 65 → 55 кг</h3>
-      <ul>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:14px; flex-wrap:wrap;">
+        <h3 style="margin:0;">Что важно отслеживать на пути 65 → 55 кг</h3>
+        <button class="save-btn" style="width:auto; white-space:nowrap; margin:0; padding:9px 16px;" onclick="exportAllData()">📥 Скачать все показатели</button>
+      </div>
+      <ul style="margin-top:12px;">
         <li><b>Вес — раз в неделю</b>, в одно время, натощак (например, каждый понедельник утром). Вес скачет из-за воды, соли, цикла — важен тренд за месяц, а не число за день.</li>
         <li><b>Обхваты (талия, бёдра, грудь, бедро)</b> — раз в 2 недели. Часто именно они показывают результат, когда весы «стоят на месте».</li>
         <li><b>Фото прогресса</b> — раз в месяц, в одной позе и освещении.</li>
@@ -1557,6 +1561,51 @@ async function renderPhotos(){
 }
 
 loadAll();
+
+function exportAllData(){
+  try{
+    const wb = XLSX.utils.book_new();
+
+    const weightRows = trackWeight.map(e => ({ Дата: e.date, "Вес, кг": e.weight }));
+    const wsWeight = XLSX.utils.json_to_sheet(weightRows.length ? weightRows : [{ Дата:"", "Вес, кг":"" }]);
+    XLSX.utils.book_append_sheet(wb, wsWeight, "Вес");
+
+    const measureRows = trackMeasure.map(e => ({
+      Дата: e.date, "Талия, см": e.waist, "Бёдра, см": e.hips, "Грудь, см": e.chest, "Бедро, см": e.thigh
+    }));
+    const wsMeasure = XLSX.utils.json_to_sheet(measureRows.length ? measureRows : [{ Дата:"" }]);
+    XLSX.utils.book_append_sheet(wb, wsMeasure, "Обхваты");
+
+    const wellbeingRows = trackWellbeing.map(e => ({
+      Дата: e.date,
+      Энергия: ENERGY_EMOJI[e.energy] || e.energy,
+      "Сон, ч": e.sleep,
+      "Вода, л": e.water,
+      Тренировка: e.workout === '1' ? 'Да' : 'Нет'
+    }));
+    const wsWellbeing = XLSX.utils.json_to_sheet(wellbeingRows.length ? wellbeingRows : [{ Дата:"" }]);
+    XLSX.utils.book_append_sheet(wb, wsWellbeing, "Самочувствие");
+
+    const diaryRows = [];
+    Object.keys(foodLog).sort().forEach(date => {
+      const isWorkout = !!workoutDays[date];
+      (foodLog[date] || []).forEach(item => {
+        diaryRows.push({ Дата: date, Продукт: item.name, Калории: item.kcal, "Тренировка в этот день": isWorkout ? 'Да' : 'Нет' });
+      });
+    });
+    const wsDiary = XLSX.utils.json_to_sheet(diaryRows.length ? diaryRows : [{ Дата:"" }]);
+    XLSX.utils.book_append_sheet(wb, wsDiary, "Дневник питания");
+
+    const photoRows = trackPhotos.map(e => ({ Дата: e.date, Заметка: e.note || '', "Фото сохранено": e.hasPhoto ? 'Да' : 'Нет' }));
+    const wsPhotos = XLSX.utils.json_to_sheet(photoRows.length ? photoRows : [{ Дата:"" }]);
+    XLSX.utils.book_append_sheet(wb, wsPhotos, "Фото прогресса");
+
+    XLSX.writeFile(wb, `мои_показатели_${todayStr()}.xlsx`);
+  } catch(e){
+    alert('Не удалось сформировать файл: ' + e.message);
+  }
+}
+
 
 /* ---------- FOOD DIARY ---------- */
 let foodBudget = 1575;
