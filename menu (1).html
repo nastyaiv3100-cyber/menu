@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Меню недели — похудение</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FBF5EA;
+    --cream-deep:#F3E9D6;
+    --ink:#3B2E22;
+    --ink-soft:#6B5B4B;
+    --gold:#C7972A;
+    --gold-deep:#9C7419;
+    --clay:#C97452;
+    --sage:#7C8F5A;
+    --line: rgba(59,46,34,0.12);
+    --glass: rgba(255,255,255,0.55);
+    --glass-border: rgba(255,255,255,0.7);
+    --shadow: 0 10px 30px rgba(120, 90, 40, 0.14);
+  }
+
+  *{ box-sizing:border-box; }
+
+  body{
+    margin:0;
+    font-family:'Manrope', sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 10% -10%, #FFF6E4 0%, transparent 60%),
+      radial-gradient(1000px 700px at 110% 10%, #F6E7CE 0%, transparent 55%),
+      linear-gradient(180deg, var(--cream) 0%, var(--cream-deep) 100%);
+    min-height:100vh;
+    padding: 40px 20px 80px;
+  }
+
+  .wrap{ max-width: 1040px; margin:0 auto; }
+
+  header.hero{
+    text-align:center;
+    margin-bottom: 34px;
+    position:relative;
+  }
+
+  .eyebrow{
+    font-size:12.5px;
+    letter-spacing:3px;
+    text-transform:uppercase;
+    color: var(--gold-deep);
+    font-weight:700;
+    margin-bottom:10px;
+  }
+
+  h1{
+    font-family:'Playfair Display', serif;
+    font-weight:800;
+    font-size: clamp(32px, 5vw, 52px);
+    margin: 0 0 12px;
+    line-height:1.05;
+    color: var(--ink);
+  }
+
+  h1 em{
+    font-style:normal;
+    color: var(--gold-deep);
+    position:relative;
+  }
+
+  .sub{
+    font-size:16px;
+    color:var(--ink-soft);
+    max-width:560px;
+    margin:0 auto;
+    line-height:1.55;
+  }
+
+  .badges{
+    display:flex; gap:10px; justify-content:center; flex-wrap:wrap;
+    margin-top:18px;
+  }
+  .badge{
+    font-size:13px; font-weight:700;
+    padding:7px 14px;
+    border-radius:999px;
+    background: var(--glass);
+    border:1px solid var(--glass-border);
+    backdrop-filter: blur(6px);
+    color: var(--ink-soft);
+  }
+  .badge b{ color: var(--gold-deep); }
+
+  /* Day ribbon (signature element: ticket-style tabs) */
+  .ribbon{
+    display:flex;
+    gap:8px;
+    overflow-x:auto;
+    padding: 6px 4px 18px;
+    margin-bottom: 6px;
+    scrollbar-width: thin;
+  }
+  .ribbon::-webkit-scrollbar{ height:6px; }
+  .ribbon::-webkit-scrollbar-thumb{ background: var(--gold); border-radius:10px; }
+
+  .tab{
+    flex: 0 0 auto;
+    position:relative;
+    cursor:pointer;
+    padding: 14px 18px 12px;
+    min-width: 84px;
+    text-align:center;
+    background: var(--glass);
+    border:1px solid var(--glass-border);
+    border-radius: 14px 14px 4px 4px;
+    backdrop-filter: blur(6px);
+    transition: transform .25s ease, box-shadow .25s ease, background .25s ease;
+    box-shadow: 0 4px 12px rgba(120,90,40,0.06);
+  }
+  .tab::after{
+    content:'';
+    position:absolute;
+    top:-5px; left:50%;
+    width:9px; height:9px;
+    background: var(--gold);
+    border-radius:50%;
+    transform: translateX(-50%);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    opacity:0;
+    transition: opacity .25s ease;
+  }
+  .tab .dow{
+    font-family:'Playfair Display', serif;
+    font-weight:700;
+    font-size:19px;
+    color: var(--ink);
+  }
+  .tab .kcal-mini{
+    display:block;
+    font-size:11px;
+    color: var(--ink-soft);
+    margin-top:3px;
+    font-weight:600;
+  }
+  .tab:hover{ transform: translateY(-3px); }
+  .tab.active{
+    background: linear-gradient(160deg, #ffffff, #FFF3DD);
+    box-shadow: var(--shadow);
+    transform: translateY(-4px);
+  }
+  .tab.active::after{ opacity:1; }
+  .tab.active .dow{ color: var(--gold-deep); }
+
+  /* Day panel */
+  .day-panel{ display:none; }
+  .day-panel.active{ display:block; animation: rise .45s ease; }
+  @keyframes rise{
+    from{ opacity:0; transform: translateY(10px); }
+    to{ opacity:1; transform:none; }
+  }
+
+  .day-summary{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:10px;
+    margin: 4px 4px 20px;
+    padding: 14px 20px;
+    background: var(--glass);
+    border:1px solid var(--glass-border);
+    border-radius:16px;
+    backdrop-filter: blur(6px);
+  }
+  .day-summary .title{
+    font-family:'Playfair Display', serif;
+    font-size:20px;
+    font-weight:700;
+  }
+  .day-summary .total{
+    font-size:13px;
+    font-weight:700;
+    color: var(--ink-soft);
+  }
+  .day-summary .total b{ color:var(--clay); font-size:15px; }
+
+  .meals{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap:18px;
+  }
+
+  .meal-card{
+    background: var(--glass);
+    border:1px solid var(--glass-border);
+    border-radius:20px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow);
+    position:relative;
+    overflow:hidden;
+    transition: transform .25s ease;
+  }
+  .meal-card:hover{ transform: translateY(-4px); }
+  .meal-card::before{
+    content:'';
+    position:absolute; top:0; left:0; right:0; height:4px;
+    background: linear-gradient(90deg, var(--gold), var(--clay));
+  }
+
+  .meal-head{
+    display:flex; align-items:center; gap:10px; margin-bottom:10px;
+  }
+  .meal-icon{
+    width:34px; height:34px;
+    flex:0 0 auto;
+    border-radius:50%;
+    background: linear-gradient(160deg, #FFF3DD, #FBE3BB);
+    display:flex; align-items:center; justify-content:center;
+    color: var(--gold-deep);
+  }
+  .meal-type{
+    font-size:12px; text-transform:uppercase; letter-spacing:1.5px;
+    font-weight:800; color: var(--ink-soft);
+  }
+  .meal-name{
+    font-family:'Playfair Display', serif;
+    font-size: 19px;
+    font-weight:700;
+    line-height:1.25;
+    margin: 2px 0 12px;
+  }
+
+  .meta-row{
+    display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;
+  }
+  .meta{
+    font-size:11.5px; font-weight:700;
+    padding: 4px 10px;
+    border-radius:999px;
+    background: rgba(199,151,42,0.14);
+    color: var(--gold-deep);
+  }
+  .meta.time{ background: rgba(124,143,90,0.16); color:#5A6B3E; }
+  .meta.air{ background: rgba(201,116,82,0.18); color: var(--clay); }
+
+  .ingr{
+    margin: 0 0 12px;
+    padding-left: 18px;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    line-height:1.6;
+  }
+  .ingr li::marker{ color: var(--gold); }
+
+  details.steps{
+    border-top: 1px dashed var(--line);
+    padding-top: 10px;
+  }
+  details.steps summary{
+    cursor:pointer;
+    font-size:13px;
+    font-weight:700;
+    color: var(--clay);
+    list-style:none;
+  }
+  details.steps summary::-webkit-details-marker{ display:none; }
+  details.steps summary::before{
+    content:'✦ ';
+  }
+  details.steps p{
+    font-size:13.5px;
+    line-height:1.6;
+    color: var(--ink-soft);
+    margin: 8px 0 0;
+  }
+
+  .samokat-swap{
+    display: block;
+    text-align: center;
+    margin-top: 14px;
+    padding: 9px 12px;
+    border-radius: 12px;
+    font-size: 12.5px;
+    font-weight: 700;
+    text-decoration: none;
+    color: var(--clay);
+    background: rgba(201,116,82,0.1);
+    border: 1px solid rgba(201,116,82,0.25);
+    transition: background .2s ease, transform .2s ease;
+  }
+  .samokat-swap:hover{
+    background: rgba(201,116,82,0.2);
+    transform: translateY(-1px);
+  }
+
+  .tab.shop-tab{
+    background: linear-gradient(160deg, #F3E9D6, #E9D9B8);
+  }
+  .tab.shop-tab .dow{ font-size:15px; }
+  .tab.shop-tab.active{
+    background: linear-gradient(160deg, #ffffff, #FFF3DD);
+  }
+
+  .shop-panel{ display:none; }
+  .shop-panel.active{ display:block; animation: rise .45s ease; }
+
+  .shop-head{
+    display:flex; justify-content:space-between; align-items:center;
+    flex-wrap:wrap; gap:12px;
+    margin: 4px 4px 20px;
+    padding: 16px 20px;
+    background: var(--glass);
+    border:1px solid var(--glass-border);
+    border-radius:16px;
+    backdrop-filter: blur(6px);
+  }
+  .shop-head .title{
+    font-family:'Playfair Display', serif;
+    font-size:20px; font-weight:700;
+  }
+  .shop-head .note{ font-size:13px; color:var(--ink-soft); max-width:400px; }
+  .samokat-link{
+    display:inline-flex; align-items:center; gap:8px;
+    background: linear-gradient(90deg, var(--gold), var(--clay));
+    color:#fff; font-weight:700; font-size:13.5px;
+    padding:10px 18px; border-radius:999px;
+    text-decoration:none;
+    box-shadow: 0 6px 16px rgba(201,116,82,0.3);
+    transition: transform .2s ease;
+    flex:0 0 auto;
+  }
+  .samokat-link:hover{ transform: translateY(-2px); }
+
+  .shop-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap:16px;
+  }
+  .shop-cat{
+    background: var(--glass);
+    border:1px solid var(--glass-border);
+    border-radius:18px;
+    padding:18px 20px;
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow);
+  }
+  .shop-cat h3{
+    font-family:'Playfair Display', serif;
+    font-size:16px; margin:0 0 12px;
+    color: var(--gold-deep);
+  }
+  .shop-cat ul{ list-style:none; margin:0; padding:0; }
+  .shop-cat li{
+    display:flex; align-items:center; gap:10px;
+    font-size:13.5px; color:var(--ink);
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .shop-cat li:last-child{ border-bottom:none; }
+  .shop-cat input[type=checkbox]{
+    width:16px; height:16px; accent-color: var(--gold-deep);
+    flex:0 0 auto;
+  }
+  .shop-cat li.checked span{
+    text-decoration: line-through;
+    color: var(--ink-soft);
+    opacity:0.6;
+  }
+
+  .tab.tracker-tab{
+    background: linear-gradient(160deg, #F3E9D6, #E9D9B8);
+  }
+  .tab.tracker-tab .dow{ font-size:15px; }
+  .tab.tracker-tab.active{
+    background: linear-gradient(160deg, #ffffff, #FFF3DD);
+  }
+
+  .tracker-panel{ display:none; }
+  .tracker-panel.active{ display:block; animation: rise .45s ease; }
+
+  .info-card{
+    background: var(--glass);
+    border:1px solid var(--glass-border);
+    border-radius:18px;
+    padding: 20px 24px;
+    backdrop-filter: blur(8px);
+    box-shadow: var(--shadow);
+    margin: 4px 4px 20px;
+  }
+  .info-card h3{
+    font-family:'Playfair Display', serif;
+    font-size:18px; margin:0 0 10px; color: var(--gold-deep);
+  }
+  .info-card ul{ margin:0; padding-left:20px; font-size:13.5px; color:var(--ink-soft); line-height:1.7; }
+  .info-card ul li b{ color: var(--ink); }
+
+  .progress-wrap{
+    margin: 4px 4px 20px;
+    padding: 18px 24px;
+    background: var(--glass);
+    border:1px solid var(--glass-border);
+    border-radius:18px;
+    backdrop-filter: blur(8px);
+    box-shadow: var(--shadow);
+  }
+  .progress-labels{
+    display:flex; justify-content:space-between;
+    font-size:13px; font-weight:700; color:var(--ink-soft);
+    margin-bottom:8px;
+  }
+  .progress-labels b{ color:var(--gold-deep); font-size:15px; }
+  .progress-bar{
+    height:14px; border-radius:999px;
+    background: rgba(59,46,34,0.08);
+    overflow:hidden;
+    position:relative;
+  }
+  .progress-fill{
+    height:100%;
+    background: linear-gradient(90deg, var(--gold), var(--clay));
+    border-radius:999px;
+    transition: width .5s ease;
+  }
+
+  .sub-nav{
+    display:flex; gap:8px; flex-wrap:wrap;
+    margin: 0 4px 18px;
+  }
+  .sub-pill{
+    padding: 9px 18px;
+    border-radius: 999px;
+    font-size:13px; font-weight:700;
+    background: var(--glass);
+    border:1px solid var(--glass-border);
+    color: var(--ink-soft);
+    cursor:pointer;
+    backdrop-filter: blur(6px);
+    transition: all .2s ease;
+  }
+  .sub-pill:hover{ color: var(--ink); }
+  .sub-pill.active{
+    background: linear-gradient(90deg, var(--gold), var(--clay));
+    color:#fff;
+    box-shadow: 0 6px 14px rgba(201,116,82,0.28);
+  }
+  .sub-panel{ display:none; }
+  .sub-panel.active{ display:block; animation: rise .4s ease; }
+
+  .freq-tag{
+    display:inline-block;
+    font-size:11px; font-weight:700;
+    padding:3px 10px; border-radius:999px;
+    background: rgba(124,143,90,0.16); color:#5A6B3E;
+    margin-left:8px;
+  }
+
+  .tracker-grid{
+    display:grid;
+    grid-template-columns: 1.1fr 1.6fr;
+    gap:18px;
+    margin: 0 4px;
+  }
+  @media (max-width: 800px){ .tracker-grid{ grid-template-columns: 1fr; } }
+
+  .tracker-form{
+    background: var(--glass);
+    border:1px solid var(--glass-border);
+    border-radius:20px;
+    padding:22px;
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow);
+    height: fit-content;
+  }
+  .tracker-form h3{
+    font-family:'Playfair Display', serif;
+    font-size:17px; margin:0 0 14px; color:var(--ink);
+  }
+  .field{ margin-bottom:12px; }
+  .field label{
+    display:block; font-size:12px; font-weight:700;
+    color: var(--ink-soft); margin-bottom:4px;
+  }
+  .field input, .field select{
+    width:100%; padding:8px 10px;
+    border-radius:10px; border:1px solid var(--line);
+    background:#fff; font-family:'Manrope',sans-serif; font-size:13.5px;
+    color: var(--ink);
+  }
+  .field-row{ display:flex; gap:10px; }
+  .field-row .field{ flex:1; }
+  .save-btn{
+    width:100%; padding:11px;
+    background: linear-gradient(90deg, var(--gold), var(--clay));
+    color:#fff; font-weight:700; font-size:14px;
+    border:none; border-radius:12px; cursor:pointer;
+    margin-top:6px;
+    transition: transform .2s ease;
+  }
+  .save-btn:hover{ transform: translateY(-1px); }
+  .save-status{ font-size:12px; color:var(--sage); margin-top:8px; min-height:16px; }
+
+  .chart-card{
+    background: var(--glass);
+    border:1px solid var(--glass-border);
+    border-radius:20px;
+    padding:22px;
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow);
+    margin-bottom:18px;
+  }
+  .chart-card h3{
+    font-family:'Playfair Display', serif;
+    font-size:17px; margin:0 0 12px;
+  }
+  .empty-note{ font-size:13px; color:var(--ink-soft); text-align:center; padding:20px 0; }
+
+  .track-table-wrap{ overflow-x:auto; }
+  table.track-table{
+    width:100%; border-collapse:collapse; font-size:13px;
+  }
+  table.track-table th, table.track-table td{
+    padding:8px 10px; text-align:center; border-bottom:1px solid var(--line);
+    white-space:nowrap;
+  }
+  table.track-table th{
+    font-size:11px; text-transform:uppercase; letter-spacing:0.5px;
+    color: var(--gold-deep);
+  }
+  table.track-table td.delta-neg{ color:#5A6B3E; font-weight:700; }
+  table.track-table td.delta-pos{ color:var(--clay); font-weight:700; }
+  .del-btn{
+    background:none; border:none; cursor:pointer; color:var(--ink-soft);
+    font-size:14px;
+  }
+  .del-btn:hover{ color:var(--clay); }
+
+  .tab.diary-tab{
+    background: linear-gradient(160deg, #F3E9D6, #E9D9B8);
+  }
+  .tab.diary-tab .dow{ font-size:15px; }
+  .tab.diary-tab.active{
+    background: linear-gradient(160deg, #ffffff, #FFF3DD);
+  }
+  .diary-panel{ display:none; }
+  .diary-panel.active{ display:block; animation: rise .45s ease; }
+
+  .food-chip{
+    display:inline-block;
+    padding:7px 12px;
+    margin: 0 6px 8px 0;
+    border-radius: 12px;
+    font-size:12.5px; font-weight:600;
+    background: rgba(199,151,42,0.12);
+    border:1px solid var(--glass-border);
+    color: var(--ink);
+    cursor:pointer;
+    transition: transform .15s ease, background .15s ease;
+  }
+  .food-chip:hover{ background: rgba(199,151,42,0.22); transform: translateY(-1px); }
+
+  .photo-preview{
+    width:100%; max-width:200px; border-radius:14px;
+    margin-top:10px; display:none;
+    box-shadow: var(--shadow);
+  }
+  .thumb{
+    width:44px; height:44px; object-fit:cover;
+    border-radius:8px; cursor:pointer;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+
+  footer{
+    text-align:center;
+    margin-top: 46px;
+    font-size:12.5px;
+    color: var(--ink-soft);
+    opacity:0.8;
+  }
+
+  @media (max-width:520px){
+    body{ padding: 24px 12px 60px; }
+    .meals{ grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">Личное меню · 7 дней</div>
+    <h1>Теперь должно<br><em>получиться</em></h1>
+    <p class="sub" id="motivation-quote"></p>
+    <div class="badges">
+      <div class="badge">Норма: <b>~1550–1600 ккал</b></div>
+      <div class="badge">Приёмов пищи: <b>3</b></div>
+    </div>
+  </header>
+
+  <nav class="ribbon" id="ribbon"></nav>
+
+  <div id="panels"></div>
+
+  <div class="shop-panel" id="shop-panel">
+    <div class="shop-head">
+      <div>
+        <div class="title">Список покупок на неделю</div>
+        <div class="note">Все продукты по этому меню — их удобно заказать одной корзиной.</div>
+      </div>
+      <a class="samokat-link" href="https://samokat.ru" target="_blank" rel="noopener">🛒 Открыть Самокат</a>
+    </div>
+    <div class="shop-grid" id="shop-grid"></div>
+
+    <div class="info-card" style="margin-top:24px;">
+      <h3>🛵 Проверенные замены из готовой еды Самоката</h3>
+      <p style="font-size:12.5px; color:var(--ink-soft); margin:0 0 14px; line-height:1.6;">
+        Самокат не публикует калорийность на карточках товаров, поэтому цифры ниже — моя оценка по составу и весу порции, а не точный факт. Цены и наличие смотри на сайте — могли измениться.
+      </p>
+      <div class="track-table-wrap">
+        <table class="track-table">
+          <thead><tr><th style="text-align:left;">Блюдо</th><th>Вес</th><th>≈ ккал</th><th>Цена</th><th></th></tr></thead>
+          <tbody id="swap-table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="tracker-panel" id="tracker-panel">
+    <div class="info-card">
+      <h3>Что важно отслеживать на пути 65 → 55 кг</h3>
+      <ul>
+        <li><b>Вес — раз в неделю</b>, в одно время, натощак (например, каждый понедельник утром). Вес скачет из-за воды, соли, цикла — важен тренд за месяц, а не число за день.</li>
+        <li><b>Обхваты (талия, бёдра, грудь, бедро)</b> — раз в 2 недели. Часто именно они показывают результат, когда весы «стоят на месте».</li>
+        <li><b>Фото прогресса</b> — раз в месяц, в одной позе и освещении.</li>
+        <li><b>Сон, вода, тренировки</b> — влияют на результат не меньше калорий.</li>
+        <li><b>Самочувствие и энергия</b> — не менее важный показатель, чем цифра на весах.</li>
+      </ul>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-labels">
+        <span>Старт: <b>65 кг</b></span>
+        <span id="progress-current">Сейчас: <b>—</b></span>
+        <span>Цель: <b>55 кг</b></span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="sub-nav" id="sub-nav">
+      <div class="sub-pill active" data-sub="weight">⚖️ Вес</div>
+      <div class="sub-pill" data-sub="measure">📏 Обхваты</div>
+      <div class="sub-pill" data-sub="wellbeing">💫 Самочувствие</div>
+      <div class="sub-pill" data-sub="photo">📸 Фото</div>
+    </div>
+
+    <!-- ВЕС -->
+    <div class="sub-panel active" id="sub-weight">
+      <div class="tracker-grid">
+        <div class="tracker-form">
+          <h3>Взвешивание <span class="freq-tag">раз в неделю</span></h3>
+          <div class="field">
+            <label>Дата</label>
+            <input type="date" id="w-date">
+          </div>
+          <div class="field">
+            <label>Вес, кг</label>
+            <input type="number" step="0.1" id="w-weight" placeholder="65.0">
+          </div>
+          <button class="save-btn" onclick="saveWeight()">Сохранить</button>
+          <div class="save-status" id="w-status"></div>
+        </div>
+        <div>
+          <div class="chart-card">
+            <h3>Динамика веса</h3>
+            <div id="chart-container"><div class="empty-note">Добавь первую запись — здесь появится график</div></div>
+          </div>
+          <div class="chart-card">
+            <h3>История</h3>
+            <div class="track-table-wrap" id="weight-table"><div class="empty-note">Пока нет записей</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ОБХВАТЫ -->
+    <div class="sub-panel" id="sub-measure">
+      <div class="tracker-grid">
+        <div class="tracker-form">
+          <h3>Обхваты <span class="freq-tag">раз в 2 недели</span></h3>
+          <div class="field">
+            <label>Дата</label>
+            <input type="date" id="m-date">
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Талия, см</label>
+              <input type="number" step="0.5" id="m-waist" placeholder="80">
+            </div>
+            <div class="field">
+              <label>Бёдра, см</label>
+              <input type="number" step="0.5" id="m-hips" placeholder="98">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Грудь, см</label>
+              <input type="number" step="0.5" id="m-chest" placeholder="90">
+            </div>
+            <div class="field">
+              <label>Бедро, см</label>
+              <input type="number" step="0.5" id="m-thigh" placeholder="55">
+            </div>
+          </div>
+          <button class="save-btn" onclick="saveMeasure()">Сохранить</button>
+          <div class="save-status" id="m-status"></div>
+        </div>
+        <div class="chart-card">
+          <h3>История обхватов</h3>
+          <div class="track-table-wrap" id="measure-table"><div class="empty-note">Пока нет записей</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- САМОЧУВСТВИЕ -->
+    <div class="sub-panel" id="sub-wellbeing">
+      <div class="tracker-grid">
+        <div class="tracker-form">
+          <h3>Самочувствие <span class="freq-tag">когда удобно</span></h3>
+          <div class="field">
+            <label>Дата</label>
+            <input type="date" id="wb-date">
+          </div>
+          <div class="field">
+            <label>Энергия / настроение</label>
+            <select id="wb-energy">
+              <option value="5">😄 Отлично</option>
+              <option value="4">🙂 Хорошо</option>
+              <option value="3" selected>😐 Нормально</option>
+              <option value="2">😕 Так себе</option>
+              <option value="1">😴 Тяжело</option>
+            </select>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>Сон, ч</label>
+              <input type="number" step="0.5" id="wb-sleep" placeholder="7.5">
+            </div>
+            <div class="field">
+              <label>Вода, л</label>
+              <input type="number" step="0.1" id="wb-water" placeholder="1.8">
+            </div>
+          </div>
+          <div class="field">
+            <label>Тренировка сегодня?</label>
+            <select id="wb-workout">
+              <option value="0">Нет</option>
+              <option value="1">Да</option>
+            </select>
+          </div>
+          <button class="save-btn" onclick="saveWellbeing()">Сохранить</button>
+          <div class="save-status" id="wb-status"></div>
+        </div>
+        <div class="chart-card">
+          <h3>История самочувствия</h3>
+          <div class="track-table-wrap" id="wellbeing-table"><div class="empty-note">Пока нет записей</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ФОТО -->
+    <div class="sub-panel" id="sub-photo">
+      <div class="tracker-grid">
+        <div class="tracker-form">
+          <h3>Фото прогресса <span class="freq-tag">раз в месяц</span></h3>
+          <div class="field">
+            <label>Дата</label>
+            <input type="date" id="p-date">
+          </div>
+          <div class="field">
+            <label>Фото с устройства</label>
+            <input type="file" accept="image/*" id="p-file" onchange="previewPhoto()">
+            <img class="photo-preview" id="p-preview">
+          </div>
+          <div class="field">
+            <label>Заметка (поза, освещение, ракурс)</label>
+            <input type="text" id="p-note" placeholder="Например: то же окно, утро, без вспышки">
+          </div>
+          <button class="save-btn" onclick="savePhoto()">Сохранить</button>
+          <div class="save-status" id="p-status"></div>
+        </div>
+        <div class="chart-card">
+          <h3>История фотофиксаций</h3>
+          <div class="track-table-wrap" id="photo-table"><div class="empty-note">Пока нет записей</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="diary-panel" id="diary-panel">
+    <div class="progress-wrap">
+      <div class="field" style="max-width:200px; margin:0 auto 14px;">
+        <label>Дата</label>
+        <input type="date" id="d-date">
+      </div>
+      <div class="field-row" style="max-width:320px; margin:0 auto 14px; align-items:center;">
+        <label style="flex:1; margin:0; font-size:13px; color:var(--ink-soft); display:flex; align-items:center; gap:8px;">
+          <input type="checkbox" id="d-workout" onchange="onWorkoutToggle()" style="width:16px; height:16px; accent-color:var(--gold-deep);">
+          Тренировка в этот день
+        </label>
+      </div>
+      <div class="progress-labels">
+        <span>Норма: <b id="d-budget-label">1575 ккал</b></span>
+        <span id="d-remaining">Осталось: <b>—</b></span>
+        <span>Съедено: <b id="d-consumed">0</b> ккал</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="d-progress-fill" style="width:0%"></div></div>
+    </div>
+
+    <div class="tracker-grid">
+      <div class="tracker-form">
+        <h3>Дневная норма</h3>
+        <div class="field">
+          <label>Калорий в день</label>
+          <input type="number" step="10" id="d-budget-input" placeholder="1575">
+        </div>
+        <div class="field">
+          <label>Бонус за тренировку, ккал</label>
+          <input type="number" step="10" id="d-workout-bonus-input" placeholder="150" value="150">
+        </div>
+        <button class="save-btn" onclick="saveBudget()">Сохранить норму</button>
+
+        <h3 style="margin-top:22px;">Добавить из меню на этот день</h3>
+        <div id="quick-add-chips"></div>
+
+        <h3 style="margin-top:22px;">Добавить продукт</h3>
+        <div class="field">
+          <label>Продукт (начни вводить название)</label>
+          <input type="text" id="d-food-name" list="food-datalist" placeholder="Яблоко" autocomplete="off" oninput="onFoodNameInput()">
+          <datalist id="food-datalist"></datalist>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Граммы</label>
+            <input type="number" id="d-food-grams" placeholder="100" value="100" oninput="onGramsInput()">
+          </div>
+          <div class="field">
+            <label>Калорий (авто/вручную)</label>
+            <input type="number" id="d-food-kcal" placeholder="80">
+          </div>
+        </div>
+        <div class="save-status" id="d-food-hint" style="min-height:16px;"></div>
+        <button class="save-btn" onclick="addFoodItem()">Добавить</button>
+        <div class="save-status" id="d-status"></div>
+      </div>
+      <div class="chart-card">
+        <h3>Съедено в этот день</h3>
+        <div class="track-table-wrap" id="diary-table"><div class="empty-note">Пока ничего не добавлено</div></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>Меню — ориентир, а не жёсткий протокол. Порции и калорийность можно корректировать под самочувствие и активность.</footer>
+</div>
+
+<script>
+const SPECIFIC_SWAP_MATCHES = {
+  "Куриные котлеты в аэрогриле с цветной капустой": "https://samokat.ru/product/kurinye-parovye-kotlety-creative-kitchen-160-g",
+  "Омлет со шпинатом и помидорами, свежий салат из огурца и редиса": "https://samokat.ru/product/omlet-grecheskiy-creative-kitchen-s-nachinkoy-iz-shpinata-gribov-i-syra-210-g",
+  "Омлет с помидорами, сыром и свежим салатом": "https://samokat.ru/product/omlet-grecheskiy-creative-kitchen-s-nachinkoy-iz-shpinata-gribov-i-syra-210-g"
+};
+
+function buildSamokatSearchUrl(mealName){
+  return SPECIFIC_SWAP_MATCHES[mealName] || 'https://samokat.ru/category/vsya-gotovaya-eda-13';
+}
+
+const ICONS = {
+  breakfast: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="1.8"/><path d="M12 1v3M12 20v3M23 12h-3M4 12H1M20 4l-2 2M6 18l-2 2M20 20l-2-2M6 6 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>`,
+  lunch: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M7 2v9a3 3 0 0 0 6 0V2M10 11v11M17 2c0 4-2 5-2 9s2 4 2 4v7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+  dinner: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M20 12.5A8.5 8.5 0 1 1 11.5 4a7 7 0 0 0 8.5 8.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>`
+};
+const LABELS = { breakfast:"Завтрак", lunch:"Обед", dinner:"Ужин" };
+
+const MOTIVATION_QUOTES = [
+  "Маленькие шаги каждый день приводят к большим переменам.",
+  "Ты не должна быть идеальной — достаточно быть последовательной.",
+  "Забота о себе — это не эгоизм, а необходимость.",
+  "Прогресс важнее совершенства.",
+  "Каждый полезный выбор сегодня — вклад в тебя завтрашнюю.",
+  "Слушай своё тело — оно твой лучший союзник.",
+  "Не сравнивай свой путь с чужим — сравнивай себя с собой вчерашней.",
+  "Результат приходит не за один день, но каждый день имеет значение.",
+  "Ты уже сделала первый шаг — а это самое сложное.",
+  "Энергия и хорошее самочувствие — тоже победа, не только цифры на весах.",
+  "Будь терпелива к себе — тело меняется медленнее, чем хочется, но меняется.",
+  "Один непростой день не отменяет всю проделанную работу.",
+  "Постоянство побеждает мотивацию, когда мотивации не хватает.",
+  "Ты заслуживаешь заботы — в том числе и от самой себя.",
+  "Хорошие привычки складываются в результат, которым можно гордиться.",
+  "Отдых и восстановление — тоже часть пути, а не его пауза.",
+  "Сегодняшний выбор — это забота о будущей себе.",
+  "Ты способна на больше, чем думаешь.",
+  "Не идеально — не значит плохо. Продолжай.",
+  "Каждый твой шаг вперёд имеет значение, даже маленький."
+];
+
+const FOOD_DB = [{"name":"Абрикосы","kcal":44},{"name":"Авокадо","kcal":160},{"name":"Ананас","kcal":52},{"name":"Апельсиновый сок","kcal":48},{"name":"Апельсины","kcal":43},{"name":"Арахис","kcal":552},{"name":"Арбуз","kcal":27},{"name":"Артишок","kcal":28},{"name":"Баклажаны","kcal":24},{"name":"Банан","kcal":96},{"name":"Баранина","kcal":209},{"name":"Белок","kcal":44},{"name":"Брусника","kcal":46},{"name":"Брынза","kcal":262},{"name":"Брюква","kcal":37},{"name":"Ветчина рубленая","kcal":263},{"name":"Вешенки свежие","kcal":38},{"name":"Вино сухое красное/белое","kcal":68},{"name":"Виноград","kcal":72},{"name":"Вишня","kcal":52},{"name":"Водка","kcal":235},{"name":"Говядина 1 категории","kcal":218},{"name":"Говядина 2 категории","kcal":168},{"name":"Говядина вырезка","kcal":158},{"name":"Говядина тушеная консервированная","kcal":220},{"name":"Голубика","kcal":39},{"name":"Горбуша","kcal":140},{"name":"Горох вареный","kcal":118},{"name":"Горох зерно","kcal":298},{"name":"Горошек зеленый консервы","kcal":40},{"name":"Горошек зеленый свежий","kcal":55},{"name":"Гранат","kcal":72},{"name":"Грейпфрут","kcal":35},{"name":"Грецкие орехи","kcal":656},{"name":"Гречка вареная","kcal":100},{"name":"Гречка зеленая","kcal":328},{"name":"Гречневый продел","kcal":300},{"name":"Грибы белые свежие","kcal":34},{"name":"Груша","kcal":47},{"name":"Гусь домашний мясо","kcal":161},{"name":"Дыня","kcal":35},{"name":"Желток","kcal":354},{"name":"Зефир","kcal":305},{"name":"Изюм","kcal":296},{"name":"Икра красная лососевая","kcal":263},{"name":"Индейка","kcal":276},{"name":"Индейка грудка","kcal":114},{"name":"Индейка фарш","kcal":161},{"name":"Йогурт греческий","kcal":100},{"name":"Йогурт натуральный","kcal":66},{"name":"Кабачки","kcal":24},{"name":"Кальмар","kcal":100},{"name":"Камбала дальневосточная","kcal":90},{"name":"Капуста белокочанная","kcal":28},{"name":"Капуста брокколи","kcal":34},{"name":"Капуста брюссельская","kcal":43},{"name":"Капуста кольраби","kcal":44},{"name":"Капуста краснокочанная","kcal":26},{"name":"Капуста пекинская","kcal":16},{"name":"Капуста цветная","kcal":30},{"name":"Карась","kcal":87},{"name":"Карп","kcal":112},{"name":"Картофель","kcal":77},{"name":"Картофель отварной","kcal":75},{"name":"Каша из овсяных хлопьев на воде","kcal":88},{"name":"Каша из овсяных хлопьев на молоке","kcal":102},{"name":"Кета","kcal":127},{"name":"Кефир 1%","kcal":40},{"name":"Кефир 2,5%","kcal":53},{"name":"Кефир 3,2%","kcal":59},{"name":"Кефир нежирный","kcal":31},{"name":"Кешью","kcal":600},{"name":"Киви","kcal":47},{"name":"Киноа вареная","kcal":120},{"name":"Киноа крупа","kcal":368},{"name":"Клубника","kcal":41},{"name":"Клюква","kcal":28},{"name":"Кока-кола","kcal":42},{"name":"Колбаса вареная Докторская","kcal":257},{"name":"Колбаса вареная Молочная","kcal":252},{"name":"Конина","kcal":187},{"name":"Кофе черный без сахара","kcal":7},{"name":"Крабовые палочки","kcal":85},{"name":"Креветки","kcal":90},{"name":"Кролик","kcal":183},{"name":"Крупа гречневая ядрица","kcal":308},{"name":"Крупа овсяная","kcal":342},{"name":"Кукуруза сладкая консервы","kcal":90},{"name":"Кукуруза сырая","kcal":86},{"name":"Кукуруза, зерно продовольственное","kcal":325},{"name":"Кукурузная крупа","kcal":328},{"name":"Курага","kcal":232},{"name":"Куриная грудка","kcal":113},{"name":"Куриная печень","kcal":136},{"name":"Куриные окорочка","kcal":158},{"name":"Курица 1 кат.","kcal":238},{"name":"Курица 2 кат.","kcal":159},{"name":"Лимон","kcal":34},{"name":"Лосось","kcal":142},{"name":"Лосось атлантический (семга)","kcal":153},{"name":"Лук зеленый","kcal":20},{"name":"Лук порей","kcal":36},{"name":"Лук репчатый","kcal":41},{"name":"Майонез","kcal":550},{"name":"Макаронные изделия в/с","kcal":337},{"name":"Макаронные изделия в/с,вареные","kcal":112},{"name":"Макаронные изделия из муки твердых сортов в/с","kcal":338},{"name":"Макаронные изделия из муки твердых сортов в/с, вареные","kcal":98},{"name":"Малина","kcal":46},{"name":"Манго","kcal":60},{"name":"Мандарины","kcal":38},{"name":"Манная каша на воде","kcal":80},{"name":"Манная каша на молоке","kcal":98},{"name":"Манная крупа","kcal":333},{"name":"Маргарин","kcal":745},{"name":"Мармелад","kcal":296},{"name":"Масло оливковое","kcal":898},{"name":"Масло подсолнечное","kcal":899},{"name":"Масло сливочное","kcal":730},{"name":"Масло топленое","kcal":892},{"name":"Мед натуральный","kcal":308},{"name":"Мидии","kcal":77},{"name":"Миндальный орех","kcal":609},{"name":"Минтай","kcal":72},{"name":"Молоко 1,5% жирности","kcal":45},{"name":"Молоко 2,5%","kcal":54},{"name":"Молоко 3,2%","kcal":60},{"name":"Молоко коровье нежирное","kcal":32},{"name":"Морковь","kcal":35},{"name":"Морковь отварная","kcal":33},{"name":"Мороженое пломбир","kcal":227},{"name":"Мука пшеничная 1 сорта","kcal":330},{"name":"Мука пшеничная 2 сорта","kcal":322},{"name":"Мука пшеничная в/с","kcal":334},{"name":"Мука пшеничная из твердых сортов в/с","kcal":334},{"name":"Мука пшеничная обойная","kcal":312},{"name":"Мука ржаная обдирная","kcal":298},{"name":"Мука ржаная обойная","kcal":294},{"name":"Мука ржаная сеяная","kcal":305},{"name":"Нут","kcal":360},{"name":"Нут вареный","kcal":164},{"name":"Овсяные хлопья","kcal":352},{"name":"Огурцы грунтовые","kcal":14},{"name":"Огурцы маринованные","kcal":16},{"name":"Огурцы тепличные","kcal":11},{"name":"Окунь морской","kcal":103},{"name":"Окунь речной","kcal":82},{"name":"Перец сладкий","kcal":26},{"name":"Перловая крупа","kcal":315},{"name":"Перловая крупа вареная","kcal":109},{"name":"Персик","kcal":45},{"name":"Петрушка зелень","kcal":49},{"name":"Печень говяжья","kcal":127},{"name":"Печень свиная","kcal":109},{"name":"Печенье овсяное","kcal":437},{"name":"Пиво светлое","kcal":45},{"name":"Помидоры грунтовые","kcal":24},{"name":"Помидоры тепличные","kcal":17},{"name":"Помидоры черри","kcal":15},{"name":"Пшено","kcal":342},{"name":"Пшено вареное","kcal":119},{"name":"Редис","kcal":20},{"name":"Редька черная","kcal":36},{"name":"Репа","kcal":32},{"name":"Рис белый шлифованный","kcal":333},{"name":"Рис белый шлифованный вареный","kcal":130},{"name":"Рис длиннозерный нешлифованный","kcal":340},{"name":"Рис красный нешлифованный","kcal":330},{"name":"Рис нешлифованный вареный","kcal":112},{"name":"Руккола","kcal":25},{"name":"Салат листовой","kcal":16},{"name":"Сало","kcal":797},{"name":"Сардельки говяжьи","kcal":215},{"name":"Сахар-песок","kcal":399},{"name":"Свекла","kcal":42},{"name":"Свекла отварная","kcal":48},{"name":"Свинина вырезка","kcal":142},{"name":"Свинина жирная","kcal":491},{"name":"Свинина мясная","kcal":357},{"name":"Сдоба","kcal":360},{"name":"Сельдерей корень","kcal":37},{"name":"Сельдь атлантическая нежирная","kcal":135},{"name":"Семена льна","kcal":534},{"name":"Семена чиа","kcal":486},{"name":"Семечки подсолнечника","kcal":584},{"name":"Сердце говяжье","kcal":96},{"name":"Скумбрия атлантическая","kcal":191},{"name":"Слива","kcal":49},{"name":"Сливки 10%","kcal":119},{"name":"Сливки 20%","kcal":205},{"name":"Сметана 10%","kcal":119},{"name":"Сметана 20%","kcal":206},{"name":"Сметана 30%","kcal":293},{"name":"Смородина черная","kcal":44},{"name":"Сом","kcal":115},{"name":"Сосиски Молочные","kcal":261},{"name":"Спаржа","kcal":21},{"name":"Судак","kcal":84},{"name":"Сулугуни","kcal":286},{"name":"Сухари из пшеничной муки","kcal":331},{"name":"Сыр Гауда","kcal":356},{"name":"Сыр Голландский","kcal":352},{"name":"Сыр Маасдам","kcal":350},{"name":"Сыр Пармезан","kcal":415},{"name":"Сыр Российский","kcal":364},{"name":"Сыр Тильзитер","kcal":340},{"name":"Сыр Фета","kcal":264},{"name":"Сыр Эдам","kcal":357},{"name":"Сыр плавленый","kcal":257},{"name":"Творог 18%","kcal":236},{"name":"Творог 5%","kcal":145},{"name":"Творог 9%","kcal":169},{"name":"Творог нежирный","kcal":110},{"name":"Телятина","kcal":97},{"name":"Тилапия","kcal":96},{"name":"Томатный сок","kcal":19},{"name":"Треска атлантическая","kcal":82},{"name":"Тунец в масле","kcal":232},{"name":"Тунец голубой","kcal":144},{"name":"Тыква","kcal":23},{"name":"Укроп","kcal":40},{"name":"Устрица","kcal":72},{"name":"Утка домашняя мясо и кожа","kcal":405},{"name":"Фасоль красная","kcal":333},{"name":"Фасоль красная вареная","kcal":127},{"name":"Фасоль стручковая","kcal":23},{"name":"Финики","kcal":292},{"name":"Форель","kcal":97},{"name":"Фундук","kcal":651},{"name":"Халва подсолнечная","kcal":516},{"name":"Хек","kcal":86},{"name":"Хлеб \"Бородинский","kcal":208},{"name":"Хлеб зерновой (мука пшеничная в/с, зерно дробленое)","kcal":228},{"name":"Хлеб из ржано-пшеничной муки","kcal":215},{"name":"Хлеб пшеничный из муки 1 сорта","kcal":226},{"name":"Хлеб пшеничный из муки высшего сорта","kcal":248},{"name":"Хлеб ржаной","kcal":214},{"name":"Хлеб цельнозерновой из смеси злаков","kcal":265},{"name":"Хлебцы Dr.Körner \"Бородинские","kcal":280},{"name":"Хлебцы Dr.Körner \"Гречневые\" с витаминами","kcal":283},{"name":"Хлебцы Dr.Körner \"Рисовые\" с витаминами","kcal":310},{"name":"Хлебцы Dr.Körner \"Семь злаков","kcal":290},{"name":"Хурма","kcal":67},{"name":"Чай черный без сахара","kcal":1},{"name":"Черешня","kcal":52},{"name":"Черника","kcal":44},{"name":"Чернослив","kcal":256},{"name":"Чеснок","kcal":149},{"name":"Чечевица","kcal":352},{"name":"Чечевица вареная","kcal":116},{"name":"Шампиньоны","kcal":27},{"name":"Шоколад горький","kcal":540},{"name":"Шоколад молочный","kcal":550},{"name":"Шпинат","kcal":23},{"name":"Шпроты в масле","kcal":363},{"name":"Щавель","kcal":22},{"name":"Щука","kcal":84},{"name":"Яблоки","kcal":47},{"name":"Яблочный сок","kcal":44},{"name":"Яйцо куриное","kcal":157},{"name":"Яйцо куриное отварное","kcal":157},{"name":"Яйцо перепелиное","kcal":168},{"name":"Ячневая крупа","kcal":313},{"name":"Ячневая крупа вареная","kcal":76}];
+
+document.getElementById('motivation-quote').textContent = MOTIVATION_QUOTES[Math.floor(Math.random() * MOTIVATION_QUOTES.length)];
+
+
+const DAYS = [
+  { dow:"Пн", meals:[
+    { type:"breakfast", name:"Свежий овощной салат с яйцом и брынзой", kcal:420, time:10,
+      ingr:["Огурец — 1 шт","Помидор — 1 шт","Листовая зелень — пучок","Яйцо варёное — 1 шт","Брынза — 30 г","Оливковое масло — 1 ст.л.","Цельнозерновой тост — 1 ломтик"],
+      steps:"Нарежьте огурец, помидор и зелень, добавьте нарезанное яйцо и раскрошенную брынзу, заправьте маслом. Подавайте с тостом." },
+    { type:"lunch", name:"Куриная грудка в аэрогриле, гречка и свежий овощной салат", kcal:620, time:25,
+      ingr:["Куриная грудка — 170 г","Гречка — 70 г (сухой вес)","Огурец, помидор — по 1 шт","Листовой салат","Оливковое масло — 1,5 ст.л.","Лимонный сок"],
+      steps:"Смажьте грудку маслом и специями, готовьте в аэрогриле при 200°C 12–14 минут, перевернув один раз на середине. Отварите гречку. Овощи нарежьте, заправьте маслом и лимонным соком." },
+    { type:"dinner", name:"Треска с брокколи и картофелем в аэрогриле", kcal:530, time:20,
+      ingr:["Филе трески — 200 г","Брокколи — 200 г","Картофель — 100 г (нарезать дольками)","Оливковое масло — 1 ч.л.","Соль, прованские травы, лимон"],
+      steps:"Картофель дольками отправьте в аэрогриль первым на 8 минут при 200°C. Затем добавьте рыбу и брокколи, сбрызните маслом и лимонным соком, посыпьте травами. Готовьте ещё 10–12 минут при 200°C." }
+  ]},
+  { dow:"Вт", meals:[
+    { type:"breakfast", name:"Омлет со шпинатом и помидорами, свежий салат из огурца и редиса", kcal:430, time:15,
+      ingr:["Яйца — 3 шт","Шпинат — горсть","Помидор — 1 шт","Огурец — 1 шт","Редис — горсть","Тост цельнозерновой — 1 ломтик","Масло растительное — 1 ч.л."],
+      steps:"Взбейте яйца, вылейте на сковороду, добавьте шпинат и нарезанный помидор. Готовьте под крышкой 4–5 минут. Огурец и редис нарежьте в свежий салат. Подавайте вместе с тостом." },
+    { type:"lunch", name:"Индейка с овощами в аэрогриле, бурый рис", kcal:610, time:30,
+      ingr:["Филе индейки — 170 г (кубиком)","Кабачок — 100 г","Морковь — 1 шт","Лук — половина","Бурый рис — 70 г (сухой вес)","Оливковое масло — 1 ч.л.","Томатная паста — 1 ст.л."],
+      steps:"Индейку и овощи нарежьте кубиком, смешайте с маслом и томатной пастой. Готовьте в аэрогриле при 190°C 15–18 минут, встряхнув корзину на середине. Подавайте с отварным рисом." },
+    { type:"dinner", name:"Салат с тунцом, яйцом, авокадо и огурцом", kcal:530, time:15,
+      ingr:["Тунец консервированный (в собств. соку) — 1 банка","Яйцо варёное — 1 шт","Огурец — 1 шт","Авокадо — половина","Листовой салат","Оливковое масло — 1 ст.л."],
+      steps:"Нарежьте огурец, яйцо и авокадо, смешайте с тунцом и зеленью, заправьте маслом." }
+  ]},
+  { dow:"Ср", meals:[
+    { type:"breakfast", name:"Мини-салат «Греческий» с яйцом", kcal:410, time:10,
+      ingr:["Огурец — 1 шт","Помидор — 1 шт","Сладкий перец — 1 шт","Фета — 30 г","Маслины — горсть","Яйцо варёное — 1 шт","Оливковое масло — 1 ст.л."],
+      steps:"Нарежьте овощи крупными кусочками, добавьте фету, маслины и нарезанное яйцо, заправьте маслом." },
+    { type:"lunch", name:"Говядина с овощами в аэрогриле, киноа", kcal:640, time:30,
+      ingr:["Говядина (постная) — 170 г (полосками)","Болгарский перец — 1 шт","Лук — половина","Морковь — 1 шт","Оливковое масло — 1 ч.л.","Киноа — 60 г (сухой вес)"],
+      steps:"Говядину и овощи нарежьте полосками, смешайте с маслом и специями. Готовьте в аэрогриле при 200°C 15–18 минут, встряхнув корзину один раз. Киноа отварите отдельно согласно инструкции." },
+    { type:"dinner", name:"Куриные котлеты в аэрогриле с цветной капустой", kcal:520, time:20,
+      ingr:["Куриный фарш — 200 г","Лук — половина","Яйцо — 1 шт","Цветная капуста — 200 г","Оливковое масло — 1 ч.л.","Соль, специи"],
+      steps:"Смешайте фарш с луком, яйцом и специями, сформируйте котлеты. Готовьте в аэрогриле при 180°C 12–14 минут, перевернув на середине. Капусту сбрызните маслом и готовьте рядом или следом 8–10 минут при 200°C." }
+  ]},
+  { dow:"Чт", meals:[
+    { type:"breakfast", name:"Яйца пашот на тосте с авокадо и свежим салатом", kcal:440, time:15,
+      ingr:["Яйца — 2 шт","Тост цельнозерновой — 1 ломтик","Авокадо — половина","Огурец — 1 шт","Зелень — пучок","Лимонный сок, соль, перец"],
+      steps:"Сварите яйца пашот (кипящая вода с уксусом, 3 минуты). Авокадо разомните вилкой с лимонным соком, намажьте на тост, сверху выложите яйца. Огурец с зеленью нарежьте в свежий салат." },
+    { type:"lunch", name:"Рыба и картофель в аэрогриле, салат из капусты", kcal:610, time:25,
+      ingr:["Филе минтая или лосося — 200 г","Картофель — 2 шт (дольками)","Капуста белокочанная — 150 г","Морковь — половина","Оливковое масло — 1 ст.л."],
+      steps:"Картофель дольками смешайте с половиной масла, готовьте в аэрогриле при 200°C 10 минут. Добавьте рыбу, готовьте ещё 10–12 минут. Капусту с морковью нашинкуйте, слегка помните с солью и заправьте оставшимся маслом." },
+    { type:"dinner", name:"Курица с овощами в аэрогриле", kcal:510, time:22,
+      ingr:["Куриное филе — 170 г (кубиком)","Кабачок — 100 г","Баклажан — 100 г","Перец — 1 шт","Томат — 1 шт","Оливковое масло — 1 ч.л."],
+      steps:"Курицу и овощи нарежьте кубиком, смешайте с маслом и специями. Готовьте в аэрогриле при 190°C 18–20 минут, встряхнув корзину один раз на середине." }
+  ]},
+  { dow:"Пт", meals:[
+    { type:"breakfast", name:"Салат с яйцом, брынзой, огурцом и оливками", kcal:420, time:10,
+      ingr:["Огурец — 1 шт","Листовая зелень — пучок","Яйцо варёное — 1 шт","Брынза — 30 г","Маслины — горсть","Тост цельнозерновой — 1 ломтик","Оливковое масло — 1 ст.л."],
+      steps:"Нарежьте огурец и зелень, добавьте яйцо, брынзу и маслины, заправьте маслом. Подавайте с тостом." },
+    { type:"lunch", name:"Куриный суп с овощами и цельнозерновой вермишелью, хлеб", kcal:560, time:35,
+      ingr:["Куриное филе — 170 г","Морковь — 1 шт","Лук — половина","Картофель — 1 шт","Вермишель цельнозерновая — 40 г","Цельнозерновой хлеб — 1 ломтик"],
+      steps:"Сварите бульон из курицы, добавьте нарезанные овощи, варите 15 минут, затем добавьте вермишель и варите ещё 7–8 минут." },
+    { type:"dinner", name:"Кабачки, фаршированные индейкой, в аэрогриле", kcal:600, time:25,
+      ingr:["Кабачок — 1 крупный","Фарш индейки — 200 г","Лук — половина","Помидор — 1 шт","Сыр твёрдый — 25 г"],
+      steps:"Кабачок разрежьте вдоль, удалите мякоть, смешайте фарш с луком и помидором, начините половинки, посыпьте сыром. Готовьте в аэрогриле при 180°C 20–22 минуты." }
+  ]},
+  { dow:"Сб", meals:[
+    { type:"breakfast", name:"Омлет с помидорами, сыром и свежим салатом", kcal:420, time:15,
+      ingr:["Яйца — 2 шт","Помидор — 1 шт","Твёрдый сыр — 20 г","Огурец — 1 шт","Листовая зелень — пучок","Масло растительное — 1 ч.л."],
+      steps:"Взбейте яйца с тёртым сыром, вылейте на сковороду с нарезанным помидором, готовьте под крышкой 4–5 минут. Огурец с зеленью нарежьте в свежий салат." },
+    { type:"lunch", name:"Лёгкий плов с курицей и овощами", kcal:630, time:40,
+      ingr:["Куриное филе — 170 г","Рис — 70 г (сухой вес)","Морковь — 1 шт","Лук — половина","Чеснок, специи для плова"],
+      steps:"Обжарьте курицу с луком и морковью, добавьте рис и специи, залейте водой (1:2) и тушите под крышкой 20 минут до готовности риса." },
+    { type:"dinner", name:"Салат с креветками из аэрогриля, авокадо и листовым салатом", kcal:500, time:15,
+      ingr:["Креветки очищенные — 200 г","Авокадо — половина","Листовой салат","Помидоры черри — горсть","Оливковое масло, лимон"],
+      steps:"Креветки сбрызните маслом, готовьте в аэрогриле при 200°C 6–7 минут. Смешайте с нарезанным авокадо, салатом и черри, заправьте маслом и лимонным соком." }
+  ]},
+  { dow:"Вс", meals:[
+    { type:"breakfast", name:"Салат с яйцом, авокадо, огурцом и фетой", kcal:430, time:10,
+      ingr:["Яйцо варёное — 1 шт","Авокадо — половина","Огурец — 1 шт","Фета — 20 г","Листовая зелень — пучок","Тост цельнозерновой — 1 ломтик","Оливковое масло — 1 ст.л."],
+      steps:"Нарежьте огурец, авокадо и зелень, добавьте яйцо и фету, заправьте маслом. Подавайте с тостом." },
+    { type:"lunch", name:"Курица с овощами и хлебом из аэрогриля", kcal:630, time:20,
+      ingr:["Куриная грудка — 170 г","Цукини — 1 шт","Баклажан — половина","Перец — 1 шт","Оливковое масло — 1 ст.л.","Цельнозерновой хлеб — 1 ломтик"],
+      steps:"Грудку и нарезанные овощи смешайте с маслом, готовьте в аэрогриле при 200°C 15–18 минут, перевернув один раз. Хлеб можно слегка подрумянить там же последние 2–3 минуты." },
+    { type:"dinner", name:"Овощной суп-пюре с курицей и сметаной", kcal:510, time:30,
+      ingr:["Куриное филе — 150 г","Тыква или морковь — 200 г","Лук — половина","Бульон или вода — 400 мл","Сметана 10% — 1 ст.л."],
+      steps:"Для более насыщенного вкуса тыкву или морковь можно предварительно запечь в аэрогриле 12–15 минут при 200°C. Отварите курицу, добавьте овощи, пробейте блендером в пюре, подавайте с кусочками курицы и ложкой сметаны." }
+  ]}
+];
+
+const SHOPPING_LIST = [
+  { cat:"Овощи, зелень и фрукты", items:[
+    "Огурцы — 9–10 шт",
+    "Помидоры — 6 шт + горсть черри",
+    "Листовая зелень / салат — 2–3 пучка",
+    "Сладкий перец — 4 шт",
+    "Морковь — 5–6 шт",
+    "Лук репчатый — 4 шт",
+    "Кабачки — 2 средних + 1 крупный (для фарширования)",
+    "Цукини — 1 шт",
+    "Баклажан — 1 шт",
+    "Брокколи — 200 г",
+    "Цветная капуста — 200 г",
+    "Капуста белокочанная — 150 г",
+    "Картофель — 5–6 шт",
+    "Авокадо — 2 шт",
+    "Тыква — небольшой кусок (200 г, можно заменить морковью)",
+    "Редис — горсть",
+    "Лимон — 2 шт",
+    "Чеснок — 1 головка"
+  ]},
+  { cat:"Мясо, птица, рыба", items:[
+    "Куриная грудка — 340 г",
+    "Куриное филе — 660 г",
+    "Филе индейки — 170 г",
+    "Фарш индейки — 200 г",
+    "Говядина (постная) — 170 г",
+    "Куриный фарш — 200 г",
+    "Рыба (минтай или лосось) — 200 г",
+    "Филе трески — 200 г",
+    "Тунец консервированный — 1 банка",
+    "Креветки очищенные — 200 г"
+  ]},
+  { cat:"Крупы, злаки и хлеб", items:[
+    "Гречка — 70 г",
+    "Бурый рис — 70 г",
+    "Рис обычный — 70 г",
+    "Киноа — 60 г",
+    "Вермишель цельнозерновая — 40 г",
+    "Хлеб цельнозерновой — 7 ломтиков (небольшая буханка)"
+  ]},
+  { cat:"Молочное, яйца, сыры", items:[
+    "Яйца — 14 шт",
+    "Брынза — 60 г",
+    "Фета — 50 г",
+    "Твёрдый сыр — 45 г",
+    "Маслины / оливки — 1 банка",
+    "Сметана 10% — 1 ст.л. (маленькая упаковка)"
+  ]},
+  { cat:"Масла, специи и прочее", items:[
+    "Оливковое масло — 1 бутылка (200–250 мл)",
+    "Растительное масло — немного (для жарки)",
+    "Томатная паста — 1 маленькая банка",
+    "Соль, перец, прованские травы, специи для плова"
+  ]}
+];
+
+const ribbon = document.getElementById('ribbon');
+const panels = document.getElementById('panels');
+
+DAYS.forEach((day, i) => {
+  const total = day.meals.reduce((s,m)=>s+m.kcal,0);
+
+  const tab = document.createElement('div');
+  tab.className = 'tab' + (i===0 ? ' active' : '');
+  tab.innerHTML = `<span class="dow">${day.dow}</span><span class="kcal-mini">${total} ккал</span>`;
+  tab.addEventListener('click', () => selectDay(i));
+  ribbon.appendChild(tab);
+
+  const panel = document.createElement('div');
+  panel.className = 'day-panel' + (i===0 ? ' active' : '');
+  panel.innerHTML = `
+    <div class="day-summary">
+      <div class="title">${fullDow(day.dow)}</div>
+      <div class="total">Итого за день: <b>${total} ккал</b></div>
+    </div>
+    <div class="meals">
+      ${day.meals.map(m => `
+        <div class="meal-card">
+          <div class="meal-head">
+            <div class="meal-icon">${ICONS[m.type]}</div>
+            <div>
+              <div class="meal-type">${LABELS[m.type]}</div>
+            </div>
+          </div>
+          <div class="meal-name">${m.name}</div>
+          <div class="meta-row">
+            <span class="meta">${m.kcal} ккал</span>
+            <span class="meta time">${m.time} мин</span>
+            ${/аэрогрил/i.test(m.name + m.steps) ? '<span class="meta air">🔥 Аэрогриль</span>' : ''}
+          </div>
+          <ul class="ingr">${m.ingr.map(x=>`<li>${x}</li>`).join('')}</ul>
+          <details class="steps">
+            <summary>Как готовить</summary>
+            <p>${m.steps}</p>
+          </details>
+          <a class="samokat-swap" href="${buildSamokatSearchUrl(m.name)}" target="_blank" rel="noopener">🛵 Нет времени готовить — заказать замену</a>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  panels.appendChild(panel);
+});
+
+const shopTab = document.createElement('div');
+shopTab.className = 'tab shop-tab';
+shopTab.innerHTML = `<span class="dow">🛒</span><span class="kcal-mini">Покупки</span>`;
+shopTab.addEventListener('click', () => selectDay('shop'));
+ribbon.appendChild(shopTab);
+
+const shopGrid = document.getElementById('shop-grid');
+SHOPPING_LIST.forEach(group => {
+  const catEl = document.createElement('div');
+  catEl.className = 'shop-cat';
+  catEl.innerHTML = `
+    <h3>${group.cat}</h3>
+    <ul>
+      ${group.items.map((item, idx) => `
+        <li>
+          <input type="checkbox" id="chk-${group.cat}-${idx}">
+          <span>${item}</span>
+        </li>
+      `).join('')}
+    </ul>
+  `;
+  shopGrid.appendChild(catEl);
+});
+shopGrid.querySelectorAll('li').forEach(li => {
+  const checkbox = li.querySelector('input');
+  checkbox.addEventListener('change', () => li.classList.toggle('checked', checkbox.checked));
+});
+
+const SAMOKAT_SWAPS = [
+  { name:"Куриный шницель в яйце, с картофельным пюре", weight:"210 г", kcal:380, price:"229 ₽",
+    url:"https://samokat.ru/product/kurinyy-shnitsel-samokat-v-yaytse-s-kartofelnym-pyure-210-g" },
+  { name:"Омлет Греческий, со шпинатом, грибами и сыром", weight:"210 г", kcal:300, price:"289 ₽",
+    url:"https://samokat.ru/product/omlet-grecheskiy-creative-kitchen-s-nachinkoy-iz-shpinata-gribov-i-syra-210-g" },
+  { name:"Куриные паровые котлеты Creative Kitchen", weight:"160 г", kcal:220, price:"279 ₽",
+    url:"https://samokat.ru/product/kurinye-parovye-kotlety-creative-kitchen-160-g" },
+  { name:"Чёрная паста с курицей", weight:"230 г", kcal:480, price:"309 ₽",
+    url:"https://samokat.ru/product/chyornaya-pasta-samokat-s-kuritsey-230-g" },
+  { name:"Паста карбонара Самокат", weight:"240 г", kcal:520, price:"259 ₽",
+    url:"https://samokat.ru/product/pasta-karbonara-samokat-240-g" },
+  { name:"Картофельные драники с соусом тартар", weight:"140 г", kcal:320, price:"175 ₽",
+    url:"https://samokat.ru/product/kartofelnye-draniki-creative-kitchen-s-sousom-tartar-140-g" }
+];
+
+document.getElementById('swap-table-body').innerHTML = SAMOKAT_SWAPS.map(p => `
+  <tr>
+    <td style="text-align:left;">${p.name}</td>
+    <td>${p.weight}</td>
+    <td>${p.kcal}</td>
+    <td>${p.price}</td>
+    <td><a class="samokat-swap" style="display:inline-block; margin:0; padding:5px 12px;" href="${p.url}" target="_blank" rel="noopener">Заказать</a></td>
+  </tr>
+`).join('');
+
+const trackerTab = document.createElement('div');
+trackerTab.className = 'tab tracker-tab';
+trackerTab.innerHTML = `<span class="dow">📊</span><span class="kcal-mini">Трекер</span>`;
+trackerTab.addEventListener('click', () => selectDay('tracker'));
+ribbon.appendChild(trackerTab);
+
+const diaryTab = document.createElement('div');
+diaryTab.className = 'tab diary-tab';
+diaryTab.innerHTML = `<span class="dow">🍽</span><span class="kcal-mini">Дневник</span>`;
+diaryTab.addEventListener('click', () => selectDay('diary'));
+ribbon.appendChild(diaryTab);
+
+function fullDow(short){
+  const map = {"Пн":"Понедельник","Вт":"Вторник","Ср":"Среда","Чт":"Четверг","Пт":"Пятница","Сб":"Суббота","Вс":"Воскресенье"};
+  return map[short];
+}
+
+function selectDay(target){
+  const tabs = Array.from(document.querySelectorAll('.tab'));
+  tabs.forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.day-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('shop-panel').classList.remove('active');
+  document.getElementById('tracker-panel').classList.remove('active');
+  document.getElementById('diary-panel').classList.remove('active');
+
+  if(target === 'shop'){
+    tabs[tabs.length-3].classList.add('active');
+    document.getElementById('shop-panel').classList.add('active');
+  } else if(target === 'tracker'){
+    tabs[tabs.length-2].classList.add('active');
+    document.getElementById('tracker-panel').classList.add('active');
+  } else if(target === 'diary'){
+    tabs[tabs.length-1].classList.add('active');
+    document.getElementById('diary-panel').classList.add('active');
+  } else {
+    tabs[target].classList.add('active');
+    document.querySelectorAll('.day-panel')[target].classList.add('active');
+  }
+}
+
+/* ---------- Tracker logic ---------- */
+const START_WEIGHT = 65;
+const GOAL_WEIGHT = 55;
+
+let trackWeight = [];
+let trackMeasure = [];
+let trackWellbeing = [];
+let trackPhotos = [];
+
+function formatDate(d){
+  const [y,m,day] = d.split('-');
+  return `${day}.${m}`;
+}
+
+async function loadAll(){
+  try{ const r = await window.storage.get('tracker:weight', false); trackWeight = r && r.value ? JSON.parse(r.value) : []; } catch(e){ trackWeight = []; }
+  try{ const r = await window.storage.get('tracker:measure', false); trackMeasure = r && r.value ? JSON.parse(r.value) : []; } catch(e){ trackMeasure = []; }
+  try{ const r = await window.storage.get('tracker:wellbeing', false); trackWellbeing = r && r.value ? JSON.parse(r.value) : []; } catch(e){ trackWellbeing = []; }
+  try{ const r = await window.storage.get('tracker:photos', false); trackPhotos = r && r.value ? JSON.parse(r.value) : []; } catch(e){ trackPhotos = []; }
+
+  trackWeight.sort((a,b) => a.date.localeCompare(b.date));
+  trackMeasure.sort((a,b) => a.date.localeCompare(b.date));
+  trackWellbeing.sort((a,b) => a.date.localeCompare(b.date));
+  trackPhotos.sort((a,b) => a.date.localeCompare(b.date));
+
+  renderWeight();
+  renderMeasure();
+  renderWellbeing();
+  renderPhotos();
+}
+
+/* Sub-tab switching */
+document.getElementById('sub-nav').addEventListener('click', (e) => {
+  const pill = e.target.closest('.sub-pill');
+  if(!pill) return;
+  document.querySelectorAll('.sub-pill').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
+  pill.classList.add('active');
+  document.getElementById('sub-' + pill.dataset.sub).classList.add('active');
+});
+
+/* ---------- WEIGHT ---------- */
+async function saveWeight(){
+  const date = document.getElementById('w-date').value;
+  const weight = parseFloat(document.getElementById('w-weight').value);
+  if(!date || isNaN(weight)){
+    document.getElementById('w-status').textContent = 'Укажи дату и вес.';
+    return;
+  }
+  trackWeight = trackWeight.filter(e => e.date !== date);
+  trackWeight.push({ date, weight });
+  trackWeight.sort((a,b) => a.date.localeCompare(b.date));
+  try{
+    await window.storage.set('tracker:weight', JSON.stringify(trackWeight), false);
+    document.getElementById('w-status').textContent = 'Сохранено ✓';
+  } catch(e){
+    document.getElementById('w-status').textContent = 'Не удалось сохранить.';
+  }
+  document.getElementById('w-weight').value = '';
+  renderWeight();
+}
+
+async function deleteWeight(date){
+  trackWeight = trackWeight.filter(e => e.date !== date);
+  try{ await window.storage.set('tracker:weight', JSON.stringify(trackWeight), false); } catch(e){}
+  renderWeight();
+}
+
+function renderWeight(){
+  const chartEl = document.getElementById('chart-container');
+  const tableEl = document.getElementById('weight-table');
+  const progressFill = document.getElementById('progress-fill');
+  const progressCurrent = document.getElementById('progress-current');
+
+  if(trackWeight.length === 0){
+    chartEl.innerHTML = '<div class="empty-note">Добавь первое взвешивание — здесь появится график</div>';
+    tableEl.innerHTML = '<div class="empty-note">Пока нет записей</div>';
+    progressFill.style.width = '0%';
+    progressCurrent.innerHTML = 'Сейчас: <b>—</b>';
+    return;
+  }
+
+  const latest = trackWeight[trackWeight.length-1];
+  const totalToLose = START_WEIGHT - GOAL_WEIGHT;
+  const lostSoFar = Math.max(0, START_WEIGHT - latest.weight);
+  const pct = Math.min(100, Math.round((lostSoFar / totalToLose) * 100));
+  progressFill.style.width = pct + '%';
+  progressCurrent.innerHTML = `Сейчас: <b>${latest.weight} кг</b>`;
+
+  const weights = trackWeight.map(e => e.weight);
+  const minW = Math.min(...weights, GOAL_WEIGHT) - 1;
+  const maxW = Math.max(...weights, START_WEIGHT) + 1;
+  const w = 560, h = 200, pad = 30;
+  const stepX = trackWeight.length > 1 ? (w - pad*2) / (trackWeight.length - 1) : 0;
+  const scaleY = v => h - pad - ((v - minW) / (maxW - minW)) * (h - pad*2);
+
+  const points = trackWeight.map((e,i) => `${pad + i*stepX},${scaleY(e.weight)}`).join(' ');
+  const dots = trackWeight.map((e,i) => `<circle cx="${pad + i*stepX}" cy="${scaleY(e.weight)}" r="4" fill="#C7972A" stroke="#fff" stroke-width="1.5"/>`).join('');
+  const labels = trackWeight.map((e,i) => `<text x="${pad + i*stepX}" y="${h-6}" font-size="10" fill="#6B5B4B" text-anchor="middle">${formatDate(e.date)}</text>`).join('');
+  const goalY = scaleY(GOAL_WEIGHT);
+
+  chartEl.innerHTML = `
+    <svg viewBox="0 0 ${w} ${h}" style="width:100%; height:auto;">
+      <line x1="${pad}" y1="${goalY}" x2="${w-pad}" y2="${goalY}" stroke="#7C8F5A" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <text x="${w-pad}" y="${goalY-6}" font-size="10" fill="#5A6B3E" text-anchor="end">цель 55 кг</text>
+      <polyline points="${points}" fill="none" stroke="#C97452" stroke-width="2.5"/>
+      ${dots}
+      ${labels}
+    </svg>
+  `;
+
+  const rows = trackWeight.map((e,i) => {
+    const prev = i > 0 ? trackWeight[i-1].weight : null;
+    const delta = prev !== null ? (e.weight - prev).toFixed(1) : null;
+    const deltaHtml = delta === null ? '—' : `<span class="${delta <= 0 ? 'delta-neg' : 'delta-pos'}">${delta > 0 ? '+' : ''}${delta}</span>`;
+    return `
+      <tr>
+        <td>${formatDate(e.date)}</td>
+        <td>${e.weight}</td>
+        <td>${deltaHtml}</td>
+        <td><button class="del-btn" onclick="deleteWeight('${e.date}')">✕</button></td>
+      </tr>
+    `;
+  }).join('');
+
+  tableEl.innerHTML = `
+    <table class="track-table">
+      <thead><tr><th>Дата</th><th>Вес</th><th>Δ</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+/* ---------- MEASUREMENTS ---------- */
+async function saveMeasure(){
+  const date = document.getElementById('m-date').value;
+  if(!date){
+    document.getElementById('m-status').textContent = 'Укажи дату.';
+    return;
+  }
+  const entry = {
+    date,
+    waist: parseFloat(document.getElementById('m-waist').value) || null,
+    hips: parseFloat(document.getElementById('m-hips').value) || null,
+    chest: parseFloat(document.getElementById('m-chest').value) || null,
+    thigh: parseFloat(document.getElementById('m-thigh').value) || null
+  };
+  trackMeasure = trackMeasure.filter(e => e.date !== date);
+  trackMeasure.push(entry);
+  trackMeasure.sort((a,b) => a.date.localeCompare(b.date));
+  try{
+    await window.storage.set('tracker:measure', JSON.stringify(trackMeasure), false);
+    document.getElementById('m-status').textContent = 'Сохранено ✓';
+  } catch(e){
+    document.getElementById('m-status').textContent = 'Не удалось сохранить.';
+  }
+  ['m-waist','m-hips','m-chest','m-thigh'].forEach(id => document.getElementById(id).value = '');
+  renderMeasure();
+}
+
+async function deleteMeasure(date){
+  trackMeasure = trackMeasure.filter(e => e.date !== date);
+  try{ await window.storage.set('tracker:measure', JSON.stringify(trackMeasure), false); } catch(e){}
+  renderMeasure();
+}
+
+function renderMeasure(){
+  const tableEl = document.getElementById('measure-table');
+  if(trackMeasure.length === 0){
+    tableEl.innerHTML = '<div class="empty-note">Пока нет записей</div>';
+    return;
+  }
+  const rows = trackMeasure.map(e => `
+    <tr>
+      <td>${formatDate(e.date)}</td>
+      <td>${e.waist ?? '—'}</td>
+      <td>${e.hips ?? '—'}</td>
+      <td>${e.chest ?? '—'}</td>
+      <td>${e.thigh ?? '—'}</td>
+      <td><button class="del-btn" onclick="deleteMeasure('${e.date}')">✕</button></td>
+    </tr>
+  `).join('');
+  tableEl.innerHTML = `
+    <table class="track-table">
+      <thead><tr><th>Дата</th><th>Талия</th><th>Бёдра</th><th>Грудь</th><th>Бедро</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+/* ---------- WELLBEING ---------- */
+const ENERGY_EMOJI = { "5":"😄", "4":"🙂", "3":"😐", "2":"😕", "1":"😴" };
+
+async function saveWellbeing(){
+  const date = document.getElementById('wb-date').value;
+  if(!date){
+    document.getElementById('wb-status').textContent = 'Укажи дату.';
+    return;
+  }
+  const entry = {
+    date,
+    energy: document.getElementById('wb-energy').value,
+    sleep: parseFloat(document.getElementById('wb-sleep').value) || null,
+    water: parseFloat(document.getElementById('wb-water').value) || null,
+    workout: document.getElementById('wb-workout').value
+  };
+  trackWellbeing = trackWellbeing.filter(e => e.date !== date);
+  trackWellbeing.push(entry);
+  trackWellbeing.sort((a,b) => a.date.localeCompare(b.date));
+  try{
+    await window.storage.set('tracker:wellbeing', JSON.stringify(trackWellbeing), false);
+    document.getElementById('wb-status').textContent = 'Сохранено ✓';
+  } catch(e){
+    document.getElementById('wb-status').textContent = 'Не удалось сохранить.';
+  }
+  ['wb-sleep','wb-water'].forEach(id => document.getElementById(id).value = '');
+  renderWellbeing();
+}
+
+async function deleteWellbeing(date){
+  trackWellbeing = trackWellbeing.filter(e => e.date !== date);
+  try{ await window.storage.set('tracker:wellbeing', JSON.stringify(trackWellbeing), false); } catch(e){}
+  renderWellbeing();
+}
+
+function renderWellbeing(){
+  const tableEl = document.getElementById('wellbeing-table');
+  if(trackWellbeing.length === 0){
+    tableEl.innerHTML = '<div class="empty-note">Пока нет записей</div>';
+    return;
+  }
+  const rows = trackWellbeing.map(e => `
+    <tr>
+      <td>${formatDate(e.date)}</td>
+      <td>${ENERGY_EMOJI[e.energy] || '—'}</td>
+      <td>${e.sleep ?? '—'}</td>
+      <td>${e.water ?? '—'}</td>
+      <td>${e.workout === '1' ? '✓' : '—'}</td>
+      <td><button class="del-btn" onclick="deleteWellbeing('${e.date}')">✕</button></td>
+    </tr>
+  `).join('');
+  tableEl.innerHTML = `
+    <table class="track-table">
+      <thead><tr><th>Дата</th><th>Энергия</th><th>Сон</th><th>Вода</th><th>Трен.</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+/* ---------- PHOTOS ---------- */
+function compressImage(file, maxWidth=800, quality=0.7){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.width, h = img.height;
+        if(w > maxWidth){ h = Math.round(h * (maxWidth / w)); w = maxWidth; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function previewPhoto(){
+  const file = document.getElementById('p-file').files[0];
+  const preview = document.getElementById('p-preview');
+  if(!file){ preview.style.display = 'none'; return; }
+  const reader = new FileReader();
+  reader.onload = (e) => { preview.src = e.target.result; preview.style.display = 'block'; };
+  reader.readAsDataURL(file);
+}
+
+async function savePhoto(){
+  const date = document.getElementById('p-date').value;
+  if(!date){
+    document.getElementById('p-status').textContent = 'Укажи дату.';
+    return;
+  }
+  const existing = trackPhotos.find(e => e.date === date);
+  let hasPhoto = existing ? existing.hasPhoto : false;
+
+  const file = document.getElementById('p-file').files[0];
+  if(file){
+    try{
+      document.getElementById('p-status').textContent = 'Сжимаю и сохраняю фото…';
+      const dataURL = await compressImage(file);
+      await window.storage.set('photo:' + date, dataURL, false);
+      hasPhoto = true;
+    } catch(err){
+      document.getElementById('p-status').textContent = 'Не удалось сохранить фото.';
+      return;
+    }
+  }
+
+  const entry = { date, note: document.getElementById('p-note').value || '', hasPhoto };
+  trackPhotos = trackPhotos.filter(e => e.date !== date);
+  trackPhotos.push(entry);
+  trackPhotos.sort((a,b) => a.date.localeCompare(b.date));
+  try{
+    await window.storage.set('tracker:photos', JSON.stringify(trackPhotos), false);
+    document.getElementById('p-status').textContent = 'Сохранено ✓';
+  } catch(e){
+    document.getElementById('p-status').textContent = 'Не удалось сохранить.';
+  }
+  document.getElementById('p-note').value = '';
+  document.getElementById('p-file').value = '';
+  document.getElementById('p-preview').style.display = 'none';
+  renderPhotos();
+}
+
+async function deletePhoto(date){
+  trackPhotos = trackPhotos.filter(e => e.date !== date);
+  try{
+    await window.storage.set('tracker:photos', JSON.stringify(trackPhotos), false);
+    await window.storage.delete('photo:' + date, false);
+  } catch(e){}
+  renderPhotos();
+}
+
+async function viewPhoto(date){
+  try{
+    const res = await window.storage.get('photo:' + date, false);
+    if(res && res.value){
+      const win = window.open();
+      win.document.write(`<img src="${res.value}" style="max-width:100%;">`);
+    }
+  } catch(e){}
+}
+
+async function renderPhotos(){
+  const tableEl = document.getElementById('photo-table');
+  if(trackPhotos.length === 0){
+    tableEl.innerHTML = '<div class="empty-note">Пока нет записей</div>';
+    return;
+  }
+  const rows = [];
+  for(const e of trackPhotos){
+    let thumbHtml = '—';
+    if(e.hasPhoto){
+      try{
+        const res = await window.storage.get('photo:' + e.date, false);
+        if(res && res.value){
+          thumbHtml = `<img class="thumb" src="${res.value}" onclick="viewPhoto('${e.date}')">`;
+        }
+      } catch(err){}
+    }
+    rows.push(`
+      <tr>
+        <td>${formatDate(e.date)}</td>
+        <td>${thumbHtml}</td>
+        <td style="white-space:normal; text-align:left;">${e.note || '—'}</td>
+        <td><button class="del-btn" onclick="deletePhoto('${e.date}')">✕</button></td>
+      </tr>
+    `);
+  }
+  tableEl.innerHTML = `
+    <table class="track-table">
+      <thead><tr><th>Дата</th><th>Фото</th><th style="text-align:left;">Заметка</th><th></th></tr></thead>
+      <tbody>${rows.join('')}</tbody>
+    </table>
+  `;
+}
+
+loadAll();
+
+/* ---------- FOOD DIARY ---------- */
+let foodBudget = 1575;
+let workoutBonus = 150;
+let foodLog = {};
+let workoutDays = {};
+
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+
+function getWeekdayIndex(dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  const day = d.getDay();
+  return day === 0 ? 6 : day - 1;
+}
+
+async function loadDiary(){
+  try{ const r = await window.storage.get('tracker:budget', false); foodBudget = r && r.value ? parseFloat(r.value) : 1575; } catch(e){ foodBudget = 1575; }
+  try{ const r = await window.storage.get('tracker:workoutBonus', false); workoutBonus = r && r.value ? parseFloat(r.value) : 150; } catch(e){ workoutBonus = 150; }
+  try{ const r = await window.storage.get('tracker:foodlog', false); foodLog = r && r.value ? JSON.parse(r.value) : {}; } catch(e){ foodLog = {}; }
+  try{ const r = await window.storage.get('tracker:workoutdays', false); workoutDays = r && r.value ? JSON.parse(r.value) : {}; } catch(e){ workoutDays = {}; }
+  document.getElementById('d-budget-input').value = foodBudget;
+  document.getElementById('d-workout-bonus-input').value = workoutBonus;
+  document.getElementById('d-date').value = todayStr();
+  document.getElementById('d-workout').checked = !!workoutDays[todayStr()];
+  renderQuickAdd();
+  renderDiary();
+}
+
+document.getElementById('d-date').addEventListener('change', () => {
+  const date = document.getElementById('d-date').value || todayStr();
+  document.getElementById('d-workout').checked = !!workoutDays[date];
+  renderQuickAdd();
+  renderDiary();
+});
+
+async function saveBudget(){
+  const val = parseFloat(document.getElementById('d-budget-input').value);
+  const bonusVal = parseFloat(document.getElementById('d-workout-bonus-input').value);
+  if(isNaN(val)){
+    document.getElementById('d-status').textContent = 'Укажи число.';
+    return;
+  }
+  foodBudget = val;
+  workoutBonus = isNaN(bonusVal) ? 150 : bonusVal;
+  try{
+    await window.storage.set('tracker:budget', String(foodBudget), false);
+    await window.storage.set('tracker:workoutBonus', String(workoutBonus), false);
+    document.getElementById('d-status').textContent = 'Норма сохранена ✓';
+  } catch(e){
+    document.getElementById('d-status').textContent = 'Не удалось сохранить.';
+  }
+  renderDiary();
+}
+
+async function onWorkoutToggle(){
+  const date = document.getElementById('d-date').value || todayStr();
+  const checked = document.getElementById('d-workout').checked;
+  workoutDays[date] = checked;
+  try{
+    await window.storage.set('tracker:workoutdays', JSON.stringify(workoutDays), false);
+  } catch(e){}
+  renderDiary();
+}
+
+function renderQuickAdd(){
+  const date = document.getElementById('d-date').value || todayStr();
+  const idx = getWeekdayIndex(date);
+  const day = DAYS[idx];
+  const el = document.getElementById('quick-add-chips');
+  el.innerHTML = '';
+  day.meals.forEach(m => {
+    const chip = document.createElement('span');
+    chip.className = 'food-chip';
+    chip.textContent = `${LABELS[m.type]} · ${m.kcal} ккал`;
+    chip.addEventListener('click', () => quickAdd(m.name, m.kcal));
+    el.appendChild(chip);
+  });
+}
+
+async function persistFoodLog(){
+  try{
+    await window.storage.set('tracker:foodlog', JSON.stringify(foodLog), false);
+  } catch(e){
+    document.getElementById('d-status').textContent = 'Не удалось сохранить.';
+  }
+}
+
+async function quickAdd(name, kcal){
+  const date = document.getElementById('d-date').value || todayStr();
+  if(!foodLog[date]) foodLog[date] = [];
+  foodLog[date].push({ name, kcal });
+  await persistFoodLog();
+  renderDiary();
+}
+
+async function addFoodItem(){
+  const date = document.getElementById('d-date').value || todayStr();
+  const name = document.getElementById('d-food-name').value.trim();
+  const kcal = parseFloat(document.getElementById('d-food-kcal').value);
+  const grams = parseFloat(document.getElementById('d-food-grams').value) || null;
+  if(!name || isNaN(kcal)){
+    document.getElementById('d-status').textContent = 'Укажи название и калории.';
+    return;
+  }
+  const label = grams ? `${name} (${grams} г)` : name;
+  if(!foodLog[date]) foodLog[date] = [];
+  foodLog[date].push({ name: label, kcal: Math.round(kcal) });
+  await persistFoodLog();
+  document.getElementById('d-food-name').value = '';
+  document.getElementById('d-food-kcal').value = '';
+  document.getElementById('d-food-grams').value = '100';
+  document.getElementById('d-food-hint').textContent = '';
+  document.getElementById('d-status').textContent = 'Добавлено ✓';
+  renderDiary();
+}
+
+/* ---------- FOOD DATABASE AUTOCOMPLETE ---------- */
+const foodDatalist = document.getElementById('food-datalist');
+foodDatalist.innerHTML = FOOD_DB.map(p => `<option value="${p.name}">`).join('');
+
+const FOOD_BY_NAME = {};
+FOOD_DB.forEach(p => { FOOD_BY_NAME[p.name] = p.kcal; });
+
+function recalcKcalFromGrams(){
+  const name = document.getElementById('d-food-name').value.trim();
+  const per100 = FOOD_BY_NAME[name];
+  const grams = parseFloat(document.getElementById('d-food-grams').value) || 0;
+  if(per100 !== undefined){
+    const total = Math.round(per100 * grams / 100);
+    document.getElementById('d-food-kcal').value = total;
+    document.getElementById('d-food-hint').textContent = `${per100} ккал на 100 г → ${total} ккал на ${grams} г`;
+  } else {
+    document.getElementById('d-food-hint').textContent = name ? 'Продукта нет в базе — впиши калории вручную.' : '';
+  }
+}
+
+function onFoodNameInput(){ recalcKcalFromGrams(); }
+function onGramsInput(){ recalcKcalFromGrams(); }
+
+async function deleteFoodItem(date, index){
+  if(foodLog[date]){
+    foodLog[date].splice(index, 1);
+    await persistFoodLog();
+    renderDiary();
+  }
+}
+
+function renderDiary(){
+  const date = document.getElementById('d-date').value || todayStr();
+  const items = foodLog[date] || [];
+  const isWorkout = !!workoutDays[date];
+  const effectiveBudget = foodBudget + (isWorkout ? workoutBonus : 0);
+  const consumed = items.reduce((s,i) => s + i.kcal, 0);
+  const remaining = effectiveBudget - consumed;
+
+  document.getElementById('d-budget-label').innerHTML = isWorkout
+    ? `${foodBudget} + <span style="color:var(--sage)">${workoutBonus}</span> = ${effectiveBudget} ккал`
+    : `${foodBudget} ккал`;
+  document.getElementById('d-consumed').textContent = consumed;
+  document.getElementById('d-remaining').innerHTML = `Осталось: <b style="color:${remaining < 0 ? 'var(--clay)' : 'var(--sage)'}">${remaining} ккал</b>`;
+  const pct = Math.min(100, Math.max(0, Math.round((consumed / effectiveBudget) * 100)));
+  document.getElementById('d-progress-fill').style.width = pct + '%';
+
+  const tableEl = document.getElementById('diary-table');
+  if(items.length === 0){
+    tableEl.innerHTML = '<div class="empty-note">Пока ничего не добавлено</div>';
+    return;
+  }
+  const rows = items.map((it,i) => `
+    <tr>
+      <td style="text-align:left;">${it.name}</td>
+      <td>${it.kcal}</td>
+      <td><button class="del-btn" onclick="deleteFoodItem('${date}', ${i})">✕</button></td>
+    </tr>
+  `).join('');
+  tableEl.innerHTML = `
+    <table class="track-table">
+      <thead><tr><th style="text-align:left;">Продукт</th><th>Ккал</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+loadDiary();
+
+
+</script>
+</body>
+</html>
