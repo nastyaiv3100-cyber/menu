@@ -529,6 +529,22 @@
   }
   table.track-table td.delta-neg{ color:#5A6B3E; font-weight:700; }
   table.track-table td.delta-pos{ color:var(--clay); font-weight:700; }
+  .inline-edit{
+    width:100%;
+    border:none;
+    background:transparent;
+    font-family:'Manrope', sans-serif;
+    font-size:13px;
+    color: var(--ink);
+    padding:4px 6px;
+    border-radius:6px;
+    text-align:inherit;
+  }
+  .inline-edit:hover, .inline-edit:focus{
+    background: rgba(199,151,42,0.08);
+    outline: none;
+  }
+  .inline-edit.kcal-edit{ width:70px; text-align:center; }
   .del-btn{
     background:none; border:none; cursor:pointer; color:var(--ink-soft);
     font-size:14px;
@@ -569,6 +585,56 @@
     border-radius:8px; cursor:pointer;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   }
+
+  .modal-overlay{
+    display:none;
+    position:fixed; top:0; left:0; right:0; bottom:0;
+    background: rgba(59,46,34,0.45);
+    z-index: 1000;
+    align-items:center; justify-content:center;
+    padding: 20px;
+  }
+  .modal-overlay.active{ display:flex; }
+  .modal-box{
+    background: #fff;
+    border-radius: 20px;
+    padding: 26px 28px;
+    max-width: 420px; width:100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 50px rgba(59,46,34,0.3);
+  }
+  .modal-box h3{
+    font-family:'Playfair Display', serif;
+    font-size: 19px; margin: 0 0 6px;
+  }
+  .modal-hint{
+    font-size:12.5px; color:var(--ink-soft); margin: 0 0 16px;
+  }
+  .mc-row{
+    display:flex; align-items:center; gap:10px;
+    padding: 9px 0;
+    border-bottom: 1px dashed var(--line);
+    font-size: 13.5px;
+  }
+  .mc-row:last-child{ border-bottom:none; }
+  .mc-row input[type=checkbox]{
+    width:17px; height:17px; accent-color: var(--gold-deep); flex:0 0 auto;
+  }
+  .mc-row .mc-label{ flex:1; }
+  .mc-row .mc-kcal{ color: var(--ink-soft); font-weight:700; font-size:12.5px; }
+  .mc-row.mc-unchecked .mc-label{ text-decoration: line-through; color: var(--ink-soft); opacity:0.6; }
+  .modal-total{
+    text-align:right;
+    font-size:15px; font-weight:700;
+    margin: 14px 0 18px;
+    color: var(--ink);
+  }
+  .modal-total b{ color: var(--gold-deep); font-size:18px; }
+  .modal-actions{
+    display:flex; gap:10px; justify-content:flex-end;
+  }
+  .modal-actions .save-btn{ flex:0 0 auto; padding:10px 18px; }
 
   footer{
     text-align:center;
@@ -866,6 +932,19 @@
   <footer>Меню — ориентир, а не жёсткий протокол. Порции и калорийность можно корректировать под самочувствие и активность.</footer>
 </div>
 
+<div class="modal-overlay" id="meal-check-overlay">
+  <div class="modal-box">
+    <h3 id="mc-title">Что из этого съела?</h3>
+    <p class="modal-hint">Всё отмечено по умолчанию — сними галочки с того, что не ела.</p>
+    <div id="mc-checklist"></div>
+    <div class="modal-total">Итого: <b id="mc-total">0</b> ккал</div>
+    <div class="modal-actions">
+      <button class="save-btn" style="width:auto; margin:0; background:transparent; color:var(--ink-soft); border:1px solid var(--line);" onclick="closeMealCheckModal()">Отмена</button>
+      <button class="save-btn" style="width:auto; margin:0;" onclick="confirmMealCheck()">Добавить в дневник</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* Storage wrapper: uses Claude's window.storage when available (in-chat preview),
    falls back to localStorage when the file is opened directly in a browser
@@ -942,79 +1021,100 @@ document.getElementById('motivation-quote').textContent = MOTIVATION_QUOTES[Math
 
 const DAYS = [
   { dow:"Пн", meals:[
-    { type:"breakfast", name:"Свежий овощной салат с яйцом и брынзой", kcal:420, time:10,
-      ingr:["Огурец — 1 шт","Помидор — 1 шт","Листовая зелень — пучок","Яйцо варёное — 1 шт","Брынза — 30 г","Оливковое масло — 1 ст.л.","Цельнозерновой тост — 1 ломтик"],
-      steps:"Нарежьте огурец, помидор и зелень, добавьте нарезанное яйцо и раскрошенную брынзу, заправьте маслом. Подавайте с тостом." },
-    { type:"lunch", name:"Куриная грудка в аэрогриле, гречка и свежий овощной салат", kcal:620, time:25,
-      ingr:["Куриная грудка — 170 г","Гречка — 70 г (сухой вес)","Огурец, помидор — по 1 шт","Листовой салат","Оливковое масло — 1,5 ст.л.","Лимонный сок"],
-      steps:"Смажьте грудку маслом и специями, готовьте в аэрогриле при 200°C 12–14 минут, перевернув один раз на середине. Отварите гречку. Овощи нарежьте, заправьте маслом и лимонным соком." },
+    { type:"breakfast", name:"Свежий овощной салат с яйцом и брынзой", kcal:445, time:10,
+      ingrKcal:[{item:"Огурец",kcal:10},{item:"Помидор",kcal:10},{item:"Листовая зелень",kcal:10},{item:"Яйцо варёное",kcal:68},{item:"Брынза",kcal:116},{item:"Семечки подсолнечника",kcal:58},{item:"Йогурт греческий",kcal:48},{item:"Лимонный сок",kcal:1},{item:"Лаваш",kcal:124}],
+      ingr:["Огурец — 1 шт","Помидор — 1 шт","Листовая зелень — пучок","Яйцо варёное — 1 шт","Брынза — 45 г","Семечки подсолнечника — 10 г","Йогурт греческий — 45 г","Лимонный сок","Лаваш — 1 лист"],
+      steps:"Нарежьте огурец, помидор и зелень, добавьте нарезанное яйцо и раскрошенную брынзу. Заправьте греческим йогуртом с лимонным соком, посыпьте семечками. Подавайте с лавашем." },
+    { type:"lunch", name:"Куриная грудка в аэрогриле, гречка и свежий овощной салат", kcal:615, time:25,
+      ingrKcal:[{item:"Куриная грудка",kcal:195},{item:"Гречка",kcal:243},{item:"Огурец, помидор",kcal:15},{item:"Листовой салат",kcal:5},{item:"Растительное масло",kcal:117},{item:"Йогурт греческий",kcal:39},{item:"Лимонный сок",kcal:1}],
+      ingr:["Куриная грудка — 170 г","Гречка — 80 г (сухой вес)","Огурец, помидор — по 1 шт","Листовой салат","Растительное масло — 1 ст.л. (для курицы)","Йогурт греческий — 40 г","Лимонный сок"],
+      steps:"Смажьте грудку маслом и специями, готовьте в аэрогриле при 200°C 12–14 минут, перевернув один раз на середине. Отварите гречку. Овощи нарежьте, заправьте йогуртом с лимонным соком." },
     { type:"dinner", name:"Треска с брокколи и картофелем в аэрогриле", kcal:530, time:20,
+      ingrKcal:[{item:"Филе трески",kcal:250},{item:"Брокколи",kcal:103},{item:"Картофель",kcal:117},{item:"Оливковое масло",kcal:59},{item:"Соль, травы, лимон",kcal:1}],
       ingr:["Филе трески — 200 г","Брокколи — 200 г","Картофель — 100 г (нарезать дольками)","Оливковое масло — 1 ч.л.","Соль, прованские травы, лимон"],
       steps:"Картофель дольками отправьте в аэрогриль первым на 8 минут при 200°C. Затем добавьте рыбу и брокколи, сбрызните маслом и лимонным соком, посыпьте травами. Готовьте ещё 10–12 минут при 200°C." }
   ]},
   { dow:"Вт", meals:[
     { type:"breakfast", name:"Омлет со шпинатом и помидорами, свежий салат из огурца и редиса", kcal:430, time:15,
-      ingr:["Яйца — 3 шт","Шпинат — горсть","Помидор — 1 шт","Огурец — 1 шт","Редис — горсть","Тост цельнозерновой — 1 ломтик","Масло растительное — 1 ч.л."],
-      steps:"Взбейте яйца, вылейте на сковороду, добавьте шпинат и нарезанный помидор. Готовьте под крышкой 4–5 минут. Огурец и редис нарежьте в свежий салат. Подавайте вместе с тостом." },
+      ingrKcal:[{item:"Яйца",kcal:219},{item:"Шпинат",kcal:10},{item:"Помидор",kcal:10},{item:"Огурец",kcal:10},{item:"Редис",kcal:5},{item:"Лаваш",kcal:135},{item:"Масло растительное",kcal:41}],
+      ingr:["Яйца — 3 шт","Шпинат — горсть","Помидор — 1 шт","Огурец — 1 шт","Редис — горсть","Лаваш — 1 лист","Масло растительное — 1 ч.л."],
+      steps:"Взбейте яйца, вылейте на сковороду, добавьте шпинат и нарезанный помидор. Готовьте под крышкой 4–5 минут. Огурец и редис нарежьте в свежий салат. Подавайте вместе с лавашем." },
     { type:"lunch", name:"Индейка с овощами в аэрогриле, бурый рис", kcal:610, time:30,
+      ingrKcal:[{item:"Филе индейки",kcal:234},{item:"Кабачок",kcal:25},{item:"Морковь",kcal:12},{item:"Лук",kcal:6},{item:"Бурый рис",kcal:272},{item:"Оливковое масло",kcal:49},{item:"Томатная паста",kcal:12}],
       ingr:["Филе индейки — 170 г (кубиком)","Кабачок — 100 г","Морковь — 1 шт","Лук — половина","Бурый рис — 70 г (сухой вес)","Оливковое масло — 1 ч.л.","Томатная паста — 1 ст.л."],
       steps:"Индейку и овощи нарежьте кубиком, смешайте с маслом и томатной пастой. Готовьте в аэрогриле при 190°C 15–18 минут, встряхнув корзину на середине. Подавайте с отварным рисом." },
-    { type:"dinner", name:"Салат с тунцом, яйцом, авокадо и огурцом", kcal:530, time:15,
-      ingr:["Тунец консервированный (в собств. соку) — 1 банка","Яйцо варёное — 1 шт","Огурец — 1 шт","Авокадо — половина","Листовой салат","Оливковое масло — 1 ст.л."],
-      steps:"Нарежьте огурец, яйцо и авокадо, смешайте с тунцом и зеленью, заправьте маслом." }
+    { type:"dinner", name:"Салат с тунцом, яйцом, авокадо и огурцом", kcal:465, time:15,
+      ingrKcal:[{item:"Тунец консервированный",kcal:184},{item:"Яйцо варёное",kcal:98},{item:"Огурец",kcal:7},{item:"Авокадо",kcal:112},{item:"Листовой салат",kcal:7},{item:"Йогурт греческий",kcal:56},{item:"Лимонный сок",kcal:1}],
+      ingr:["Тунец консервированный (в собств. соку) — 1 банка","Яйцо варёное — 1 шт","Огурец — 1 шт","Авокадо — половина","Листовой салат","Йогурт греческий — 45 г","Лимонный сок"],
+      steps:"Нарежьте огурец, яйцо и авокадо, смешайте с тунцом и зеленью. Заправьте греческим йогуртом с лимонным соком." }
   ]},
   { dow:"Ср", meals:[
-    { type:"breakfast", name:"Мини-салат «Греческий» с яйцом", kcal:410, time:10,
-      ingr:["Огурец — 1 шт","Помидор — 1 шт","Сладкий перец — 1 шт","Фета — 30 г","Маслины — горсть","Яйцо варёное — 1 шт","Оливковое масло — 1 ст.л."],
-      steps:"Нарежьте овощи крупными кусочками, добавьте фету, маслины и нарезанное яйцо, заправьте маслом." },
+    { type:"breakfast", name:"Мини-салат «Греческий» с яйцом", kcal:385, time:10,
+      ingrKcal:[{item:"Огурец",kcal:13},{item:"Помидор",kcal:13},{item:"Сладкий перец",kcal:13},{item:"Фета",kcal:146},{item:"Маслины",kcal:53},{item:"Яйцо варёное",kcal:93},{item:"Йогурт греческий",kcal:53},{item:"Лимонный сок",kcal:1}],
+      ingr:["Огурец — 1 шт","Помидор — 1 шт","Сладкий перец — 1 шт","Фета — 40 г","Маслины — горсть","Яйцо варёное — 1 шт","Йогурт греческий — 45 г","Лимонный сок"],
+      steps:"Нарежьте овощи крупными кусочками, добавьте фету, маслины и нарезанное яйцо. Заправьте греческим йогуртом с лимонным соком." },
     { type:"lunch", name:"Говядина с овощами в аэрогриле, киноа", kcal:640, time:30,
+      ingrKcal:[{item:"Говядина",kcal:272},{item:"Болгарский перец",kcal:13},{item:"Лук",kcal:6},{item:"Морковь",kcal:13},{item:"Оливковое масло",kcal:52},{item:"Киноа",kcal:284}],
       ingr:["Говядина (постная) — 170 г (полосками)","Болгарский перец — 1 шт","Лук — половина","Морковь — 1 шт","Оливковое масло — 1 ч.л.","Киноа — 60 г (сухой вес)"],
       steps:"Говядину и овощи нарежьте полосками, смешайте с маслом и специями. Готовьте в аэрогриле при 200°C 15–18 минут, встряхнув корзину один раз. Киноа отварите отдельно согласно инструкции." },
     { type:"dinner", name:"Куриные котлеты в аэрогриле с цветной капустой", kcal:520, time:20,
+      ingrKcal:[{item:"Куриный фарш",kcal:309},{item:"Лук",kcal:14},{item:"Яйцо",kcal:84},{item:"Цветная капуста",kcal:56},{item:"Оливковое масло",kcal:56},{item:"Соль, специи",kcal:1}],
       ingr:["Куриный фарш — 200 г","Лук — половина","Яйцо — 1 шт","Цветная капуста — 200 г","Оливковое масло — 1 ч.л.","Соль, специи"],
       steps:"Смешайте фарш с луком, яйцом и специями, сформируйте котлеты. Готовьте в аэрогриле при 180°C 12–14 минут, перевернув на середине. Капусту сбрызните маслом и готовьте рядом или следом 8–10 минут при 200°C." }
   ]},
   { dow:"Чт", meals:[
-    { type:"breakfast", name:"Яйца пашот на тосте с авокадо и свежим салатом", kcal:440, time:15,
-      ingr:["Яйца — 2 шт","Тост цельнозерновой — 1 ломтик","Авокадо — половина","Огурец — 1 шт","Зелень — пучок","Лимонный сок, соль, перец"],
-      steps:"Сварите яйца пашот (кипящая вода с уксусом, 3 минуты). Авокадо разомните вилкой с лимонным соком, намажьте на тост, сверху выложите яйца. Огурец с зеленью нарежьте в свежий салат." },
-    { type:"lunch", name:"Рыба и картофель в аэрогриле, салат из капусты", kcal:610, time:25,
-      ingr:["Филе минтая или лосося — 200 г","Картофель — 2 шт (дольками)","Капуста белокочанная — 150 г","Морковь — половина","Оливковое масло — 1 ст.л."],
-      steps:"Картофель дольками смешайте с половиной масла, готовьте в аэрогриле при 200°C 10 минут. Добавьте рыбу, готовьте ещё 10–12 минут. Капусту с морковью нашинкуйте, слегка помните с солью и заправьте оставшимся маслом." },
+    { type:"breakfast", name:"Яйца пашот на лаваше с авокадо и свежим салатом", kcal:470, time:15,
+      ingrKcal:[{item:"Яйца",kcal:159},{item:"Лаваш",kcal:158},{item:"Авокадо",kcal:97},{item:"Огурец",kcal:12},{item:"Зелень",kcal:6},{item:"Йогурт греческий",kcal:37},{item:"Лимон, соль, перец",kcal:1}],
+      ingr:["Яйца — 2 шт","Лаваш — 1 лист","Авокадо — половина","Огурец — 1 шт","Зелень — пучок","Йогурт греческий — 30 г","Лимонный сок, соль, перец"],
+      steps:"Сварите яйца пашот (кипящая вода с уксусом, 3 минуты). Авокадо разомните вилкой с лимонным соком, намажьте на лаваш, сверху выложите яйца. Огурец с зеленью нарежьте в свежий салат, заправьте ложкой йогурта." },
+    { type:"lunch", name:"Рыба и картофель в аэрогриле, салат из капусты", kcal:600, time:25,
+      ingrKcal:[{item:"Филе минтая или лосося",kcal:250},{item:"Картофель",kcal:181},{item:"Капуста белокочанная",kcal:42},{item:"Морковь",kcal:14},{item:"Растительное масло",kcal:56},{item:"Йогурт греческий",kcal:56},{item:"Лимонный сок",kcal:1}],
+      ingr:["Филе минтая или лосося — 200 г","Картофель — 2 шт (дольками)","Капуста белокочанная — 150 г","Морковь — половина","Растительное масло — 1 ч.л. (для картофеля)","Йогурт греческий — 40 г","Лимонный сок"],
+      steps:"Картофель дольками смешайте с маслом, готовьте в аэрогриле при 200°C 10 минут. Добавьте рыбу, готовьте ещё 10–12 минут. Капусту с морковью нашинкуйте, слегка помните с солью и заправьте йогуртом с лимонным соком." },
     { type:"dinner", name:"Курица с овощами в аэрогриле", kcal:510, time:22,
+      ingrKcal:[{item:"Куриное филе",kcal:340},{item:"Кабачок",kcal:34},{item:"Баклажан",kcal:34},{item:"Перец",kcal:17},{item:"Томат",kcal:17},{item:"Оливковое масло",kcal:68}],
       ingr:["Куриное филе — 170 г (кубиком)","Кабачок — 100 г","Баклажан — 100 г","Перец — 1 шт","Томат — 1 шт","Оливковое масло — 1 ч.л."],
       steps:"Курицу и овощи нарежьте кубиком, смешайте с маслом и специями. Готовьте в аэрогриле при 190°C 18–20 минут, встряхнув корзину один раз на середине." }
   ]},
   { dow:"Пт", meals:[
-    { type:"breakfast", name:"Салат с яйцом, брынзой, огурцом и оливками", kcal:420, time:10,
-      ingr:["Огурец — 1 шт","Листовая зелень — пучок","Яйцо варёное — 1 шт","Брынза — 30 г","Маслины — горсть","Тост цельнозерновой — 1 ломтик","Оливковое масло — 1 ст.л."],
-      steps:"Нарежьте огурец и зелень, добавьте яйцо, брынзу и маслины, заправьте маслом. Подавайте с тостом." },
+    { type:"breakfast", name:"Салат с яйцом, брынзой, огурцом и оливками", kcal:385, time:10,
+      ingrKcal:[{item:"Огурец",kcal:10},{item:"Листовая зелень",kcal:5},{item:"Яйцо варёное",kcal:68},{item:"Брынза",kcal:97},{item:"Маслины",kcal:39},{item:"Лаваш",kcal:126},{item:"Йогурт греческий",kcal:39},{item:"Лимонный сок",kcal:1}],
+      ingr:["Огурец — 1 шт","Листовая зелень — пучок","Яйцо варёное — 1 шт","Брынза — 40 г","Маслины — горсть","Лаваш — 1 лист","Йогурт греческий — 45 г","Лимонный сок"],
+      steps:"Нарежьте огурец и зелень, добавьте яйцо, брынзу и маслины. Заправьте греческим йогуртом с лимонным соком. Подавайте с лавашем." },
     { type:"lunch", name:"Куриный суп с овощами и цельнозерновой вермишелью, хлеб", kcal:560, time:35,
+      ingrKcal:[{item:"Куриное филе",kcal:290},{item:"Морковь",kcal:14},{item:"Лук",kcal:7},{item:"Картофель",kcal:55},{item:"Вермишель цельнозерновая",kcal:111},{item:"Цельнозерновой хлеб",kcal:83}],
       ingr:["Куриное филе — 170 г","Морковь — 1 шт","Лук — половина","Картофель — 1 шт","Вермишель цельнозерновая — 40 г","Цельнозерновой хлеб — 1 ломтик"],
       steps:"Сварите бульон из курицы, добавьте нарезанные овощи, варите 15 минут, затем добавьте вермишель и варите ещё 7–8 минут." },
     { type:"dinner", name:"Кабачки, фаршированные индейкой, в аэрогриле", kcal:600, time:25,
+      ingrKcal:[{item:"Кабачок",kcal:53},{item:"Фарш индейки",kcal:423},{item:"Лук",kcal:18},{item:"Помидор",kcal:18},{item:"Сыр твёрдый",kcal:88}],
       ingr:["Кабачок — 1 крупный","Фарш индейки — 200 г","Лук — половина","Помидор — 1 шт","Сыр твёрдый — 25 г"],
       steps:"Кабачок разрежьте вдоль, удалите мякоть, смешайте фарш с луком и помидором, начините половинки, посыпьте сыром. Готовьте в аэрогриле при 180°C 20–22 минуты." }
   ]},
   { dow:"Сб", meals:[
     { type:"breakfast", name:"Омлет с помидорами, сыром и свежим салатом", kcal:420, time:15,
+      ingrKcal:[{item:"Яйца",kcal:232},{item:"Помидор",kcal:16},{item:"Твёрдый сыр",kcal:82},{item:"Огурец",kcal:16},{item:"Листовая зелень",kcal:8},{item:"Масло растительное",kcal:66}],
       ingr:["Яйца — 2 шт","Помидор — 1 шт","Твёрдый сыр — 20 г","Огурец — 1 шт","Листовая зелень — пучок","Масло растительное — 1 ч.л."],
       steps:"Взбейте яйца с тёртым сыром, вылейте на сковороду с нарезанным помидором, готовьте под крышкой 4–5 минут. Огурец с зеленью нарежьте в свежий салат." },
     { type:"lunch", name:"Лёгкий плов с курицей и овощами", kcal:630, time:40,
+      ingrKcal:[{item:"Куриное филе",kcal:288},{item:"Рис",kcal:314},{item:"Морковь",kcal:14},{item:"Лук",kcal:7},{item:"Чеснок, специи",kcal:7}],
       ingr:["Куриное филе — 170 г","Рис — 70 г (сухой вес)","Морковь — 1 шт","Лук — половина","Чеснок, специи для плова"],
       steps:"Обжарьте курицу с луком и морковью, добавьте рис и специи, залейте водой (1:2) и тушите под крышкой 20 минут до готовности риса." },
-    { type:"dinner", name:"Салат с креветками из аэрогриля, авокадо и листовым салатом", kcal:500, time:15,
-      ingr:["Креветки очищенные — 200 г","Авокадо — половина","Листовой салат","Помидоры черри — горсть","Оливковое масло, лимон"],
-      steps:"Креветки сбрызните маслом, готовьте в аэрогриле при 200°C 6–7 минут. Смешайте с нарезанным авокадо, салатом и черри, заправьте маслом и лимонным соком." }
+    { type:"dinner", name:"Салат с креветками из аэрогриля, авокадо и листовым салатом", kcal:475, time:15,
+      ingrKcal:[{item:"Креветки",kcal:241},{item:"Авокадо",kcal:107},{item:"Листовой салат",kcal:7},{item:"Помидоры черри",kcal:13},{item:"Растительное масло",kcal:53},{item:"Йогурт греческий",kcal:53},{item:"Лимонный сок",kcal:1}],
+      ingr:["Креветки очищенные — 200 г","Авокадо — половина","Листовой салат","Помидоры черри — горсть","Растительное масло — 1 ч.л. (для креветок)","Йогурт греческий — 40 г","Лимонный сок"],
+      steps:"Креветки сбрызните маслом, готовьте в аэрогриле при 200°C 6–7 минут. Смешайте с нарезанным авокадо, салатом и черри. Заправьте йогуртом с лимонным соком." }
   ]},
   { dow:"Вс", meals:[
-    { type:"breakfast", name:"Салат с яйцом, авокадо, огурцом и фетой", kcal:430, time:10,
-      ingr:["Яйцо варёное — 1 шт","Авокадо — половина","Огурец — 1 шт","Фета — 20 г","Листовая зелень — пучок","Тост цельнозерновой — 1 ломтик","Оливковое масло — 1 ст.л."],
-      steps:"Нарежьте огурец, авокадо и зелень, добавьте яйцо и фету, заправьте маслом. Подавайте с тостом." },
+    { type:"breakfast", name:"Салат с яйцом, авокадо, огурцом и фетой", kcal:395, time:10,
+      ingrKcal:[{item:"Яйцо варёное",kcal:66},{item:"Авокадо",kcal:76},{item:"Огурец",kcal:9},{item:"Фета",kcal:76},{item:"Листовая зелень",kcal:5},{item:"Лаваш",kcal:124},{item:"Йогурт греческий",kcal:38},{item:"Лимонный сок",kcal:1}],
+      ingr:["Яйцо варёное — 1 шт","Авокадо — половина","Огурец — 1 шт","Фета — 30 г","Листовая зелень — пучок","Лаваш — 1 лист","Йогурт греческий — 45 г","Лимонный сок"],
+      steps:"Нарежьте огурец, авокадо и зелень, добавьте яйцо и фету. Заправьте греческим йогуртом с лимонным соком. Подавайте с лавашем." },
     { type:"lunch", name:"Курица с овощами и хлебом из аэрогриля", kcal:630, time:20,
+      ingrKcal:[{item:"Куриная грудка",kcal:370},{item:"Цукини",kcal:37},{item:"Баклажан",kcal:19},{item:"Перец",kcal:19},{item:"Оливковое масло",kcal:74},{item:"Цельнозерновой хлеб",kcal:111}],
       ingr:["Куриная грудка — 170 г","Цукини — 1 шт","Баклажан — половина","Перец — 1 шт","Оливковое масло — 1 ст.л.","Цельнозерновой хлеб — 1 ломтик"],
       steps:"Грудку и нарезанные овощи смешайте с маслом, готовьте в аэрогриле при 200°C 15–18 минут, перевернув один раз. Хлеб можно слегка подрумянить там же последние 2–3 минуты." },
     { type:"dinner", name:"Овощной суп-пюре с курицей и сметаной", kcal:510, time:30,
+      ingrKcal:[{item:"Куриное филе",kcal:363},{item:"Тыква или морковь",kcal:77},{item:"Лук",kcal:10},{item:"Бульон/вода",kcal:2},{item:"Сметана 10%",kcal:58}],
       ingr:["Куриное филе — 150 г","Тыква или морковь — 200 г","Лук — половина","Бульон или вода — 400 мл","Сметана 10% — 1 ст.л."],
       steps:"Для более насыщенного вкуса тыкву или морковь можно предварительно запечь в аэрогриле 12–15 минут при 200°C. Отварите курицу, добавьте овощи, пробейте блендером в пюре, подавайте с кусочками курицы и ложкой сметаны." }
   ]}
@@ -1039,7 +1139,8 @@ const SHOPPING_LIST = [
     "Тыква — небольшой кусок (200 г, можно заменить морковью)",
     "Редис — горсть",
     "Лимон — 2 шт",
-    "Чеснок — 1 головка"
+    "Чеснок — 1 головка",
+    "Семечки подсолнечника — 15 г"
   ]},
   { cat:"Мясо, птица, рыба", items:[
     "Куриная грудка — 340 г",
@@ -1059,14 +1160,16 @@ const SHOPPING_LIST = [
     "Рис обычный — 70 г",
     "Киноа — 60 г",
     "Вермишель цельнозерновая — 40 г",
-    "Хлеб цельнозерновой — 7 ломтиков (небольшая буханка)"
+    "Хлеб цельнозерновой — 2 ломтика (для обедов Пт и Вс)",
+    "Лаваш — 5 листов (для завтраков)"
   ]},
   { cat:"Молочное, яйца, сыры", items:[
     "Яйца — 14 шт",
-    "Брынза — 60 г",
-    "Фета — 50 г",
+    "Брынза — 85 г",
+    "Фета — 75 г",
     "Твёрдый сыр — 45 г",
     "Маслины / оливки — 1 банка",
+    "Йогурт греческий — 400 г (для заправки салатов)",
     "Сметана 10% — 1 ст.л. (маленькая упаковка)"
   ]},
   { cat:"Масла, специи и прочее", items:[
@@ -1708,7 +1811,7 @@ function renderQuickAdd(){
     const chip = document.createElement('span');
     chip.className = 'food-chip';
     chip.textContent = `${LABELS[m.type]} · ${m.kcal} ккал`;
-    chip.addEventListener('click', () => quickAdd(m.name, m.kcal));
+    chip.addEventListener('click', () => openMealCheckModal(m));
     el.appendChild(chip);
   });
 }
@@ -1726,6 +1829,70 @@ async function quickAdd(name, kcal){
   if(!foodLog[date]) foodLog[date] = [];
   foodLog[date].push({ name, kcal });
   await persistFoodLog();
+  renderDiary();
+}
+
+/* ---------- MEAL CHECK MODAL ---------- */
+let mcCurrentMeal = null;
+
+function openMealCheckModal(meal){
+  mcCurrentMeal = meal;
+  document.getElementById('mc-title').textContent = meal.name;
+
+  const items = meal.ingrKcal && meal.ingrKcal.length ? meal.ingrKcal : [{ item: meal.name, kcal: meal.kcal }];
+  const listEl = document.getElementById('mc-checklist');
+  listEl.innerHTML = items.map((it, i) => `
+    <div class="mc-row" id="mc-row-${i}">
+      <input type="checkbox" checked id="mc-chk-${i}" onchange="onMcToggle(${i})">
+      <span class="mc-label">${it.item}</span>
+      <span class="mc-kcal">${it.kcal} ккал</span>
+    </div>
+  `).join('');
+
+  updateMcTotal();
+  document.getElementById('meal-check-overlay').classList.add('active');
+}
+
+function onMcToggle(i){
+  const checkbox = document.getElementById(`mc-chk-${i}`);
+  const row = document.getElementById(`mc-row-${i}`);
+  row.classList.toggle('mc-unchecked', !checkbox.checked);
+  updateMcTotal();
+}
+
+function updateMcTotal(){
+  const items = mcCurrentMeal.ingrKcal && mcCurrentMeal.ingrKcal.length ? mcCurrentMeal.ingrKcal : [{ item: mcCurrentMeal.name, kcal: mcCurrentMeal.kcal }];
+  let total = 0;
+  items.forEach((it, i) => {
+    const checkbox = document.getElementById(`mc-chk-${i}`);
+    if(checkbox && checkbox.checked) total += it.kcal;
+  });
+  document.getElementById('mc-total').textContent = total;
+}
+
+function closeMealCheckModal(){
+  document.getElementById('meal-check-overlay').classList.remove('active');
+  mcCurrentMeal = null;
+}
+
+async function confirmMealCheck(){
+  if(!mcCurrentMeal) return;
+  const items = mcCurrentMeal.ingrKcal && mcCurrentMeal.ingrKcal.length ? mcCurrentMeal.ingrKcal : [{ item: mcCurrentMeal.name, kcal: mcCurrentMeal.kcal }];
+  const kept = [];
+  let total = 0;
+  items.forEach((it, i) => {
+    const checkbox = document.getElementById(`mc-chk-${i}`);
+    if(checkbox && checkbox.checked){ kept.push(it.item); total += it.kcal; }
+  });
+
+  const allChecked = kept.length === items.length;
+  const label = allChecked ? mcCurrentMeal.name : `${mcCurrentMeal.name} (без: ${items.filter((it,i)=>!document.getElementById(`mc-chk-${i}`).checked).map(it=>it.item).join(', ')})`;
+
+  const date = document.getElementById('d-date').value || todayStr();
+  if(!foodLog[date]) foodLog[date] = [];
+  foodLog[date].push({ name: label, kcal: total });
+  await persistFoodLog();
+  closeMealCheckModal();
   renderDiary();
 }
 
@@ -1781,6 +1948,18 @@ async function deleteFoodItem(date, index){
   }
 }
 
+async function updateFoodItem(date, index, field, value){
+  if(!foodLog[date] || !foodLog[date][index]) return;
+  if(field === 'kcal'){
+    const num = parseFloat(value);
+    foodLog[date][index].kcal = isNaN(num) ? 0 : Math.round(num);
+  } else {
+    foodLog[date][index].name = value;
+  }
+  await persistFoodLog();
+  renderDiary();
+}
+
 function renderDiary(){
   const date = document.getElementById('d-date').value || todayStr();
   const items = foodLog[date] || [];
@@ -1804,8 +1983,8 @@ function renderDiary(){
   }
   const rows = items.map((it,i) => `
     <tr>
-      <td style="text-align:left;">${it.name}</td>
-      <td>${it.kcal}</td>
+      <td style="text-align:left;"><input type="text" class="inline-edit" value="${it.name}" onchange="updateFoodItem('${date}', ${i}, 'name', this.value)"></td>
+      <td><input type="number" class="inline-edit kcal-edit" value="${it.kcal}" onchange="updateFoodItem('${date}', ${i}, 'kcal', this.value)"></td>
       <td><button class="del-btn" onclick="deleteFoodItem('${date}', ${i})">✕</button></td>
     </tr>
   `).join('');
